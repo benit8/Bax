@@ -1,0 +1,10 @@
+[submodule "extern/fmt"]
+	path = extern/fmt
+	url = https://github.com/fmtlib/fmt
+[submodule "extern/json"]
+	path = extern/json
+	url = https://github.com/nlohmann/json
+[submodule "tests/criterion"]
+	path = tests/criterion
+	url = https://github.com/Snaipe/Criterion
+	branch = master
