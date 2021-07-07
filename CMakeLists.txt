@@ -46,12 +46,23 @@ PUBLIC
 	sources/Common/Log.hpp
 	sources/Common/OptionParser.hpp
 	sources/Common/TTYEscapeSequences.hpp
+	sources/Compiler/Compiler.hpp
+	sources/Compiler/Lexer.hpp
+	sources/Compiler/Parser.hpp
+	sources/Compiler/Token.hpp
+	sources/Compiler/TokenTypes.hpp
+	sources/VM/VM.hpp
 
 PRIVATE
 	sources/main.cpp
 	sources/Common/GenericLexer.cpp
 	sources/Common/Log.cpp
 	sources/Common/OptionParser.cpp
+	sources/Compiler/Compiler.cpp
+	sources/Compiler/Lexer.cpp
+	sources/Compiler/Parser.cpp
+	sources/Compiler/Token.cpp
+	sources/VM/VM.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -62,4 +73,4 @@ PRIVATE
 )
 
 # Tests
-add_subdirectory(tests)
+# add_subdirectory(tests)
