@@ -9,6 +9,7 @@
 // -----------------------------------------------------------------------------
 
 #include "Common/GenericLexer.hpp"
+#include "fmt/format.h"
 #include "TokenTypes.hpp"
 #include <ostream>
 
@@ -29,10 +30,17 @@ struct Token : public GenericToken
 
 	static const char* type_to_string(Token::Type);
 	const char* type_to_string() const { return type_to_string(type); }
-
-	friend std::ostream& operator<<(std::ostream& os, const Token& t) {
-		return os << t.start << ',' << t.end << ':' << t.type_to_string() << '{' << t.trivia << '}';
-	}
 };
 
 }
+
+template <>
+struct fmt::formatter<Bax::Token> {
+	constexpr auto parse(format_parse_context& ctx) {
+		return ctx.begin();
+	}
+	template <typename FormatContext>
+	auto format(const Bax::Token& t, FormatContext& ctx) {
+		return format_to(ctx.out(), "{}(\"{}\")[{}][{}]", t.type_to_string(), t.trivia, t.start, t.end);
+	}
+};

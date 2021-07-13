@@ -27,6 +27,15 @@ const Lexer::OperatorTreeNode Lexer::operator_tree_root = {
 			{'-', { Token::Type::MinusMinus, {} }},
 			{'=', { Token::Type::MinusEquals, {} }}
 		} }},
+		{'*', { Token::Type::Asterisk, {
+			{'*', { Token::Type::AsteriskAsterisk, {
+				{'=', { Token::Type::AsteriskAsteriskEquals, {} }}
+			} }},
+			{'=', { Token::Type::AsteriskEquals, {} }}
+		} }},
+		{'/', { Token::Type::Slash, {
+			{'=', { Token::Type::SlashEquals, {} }}
+		} }},
 		{'=', { Token::Type::Equals, {
 			{'=', { Token::Type::EqualsEquals, {} }}
 		} }},

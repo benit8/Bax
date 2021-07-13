@@ -4,9 +4,9 @@
 ** Compiler.cpp
 */
 
+#include "Common/Log.hpp"
 #include "Compiler.hpp"
 #include "Parser.hpp"
-#include "Common/Log.hpp"
 #include <fstream>
 #include <streambuf>
 #include <string>

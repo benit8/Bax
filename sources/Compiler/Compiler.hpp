@@ -19,6 +19,8 @@ namespace Bax
 
 class Compiler
 {
+	AST::Node* m_ast = nullptr;
+
 public:
 	Compiler();
 	~Compiler();
@@ -28,9 +30,6 @@ public:
 
 private:
 	bool run(std::string_view source);
-
-private:
-	AST::Node* m_ast = nullptr;
 };
 
 }

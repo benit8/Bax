@@ -9,6 +9,7 @@
 // -----------------------------------------------------------------------------
 
 #include "Assertions.hpp"
+#include "fmt/format.h"
 #include <algorithm>
 #include <functional>
 #include <optional>
@@ -23,10 +24,6 @@ public:
 	struct Position {
 		size_t column = 1;
 		size_t line = 1;
-
-		friend std::ostream& operator<<(std::ostream& os, const Position& p) {
-			return os << 'l' << p.line << ':' << p.column;
-		}
 	};
 
 protected:
@@ -250,10 +247,6 @@ struct GenericToken
 {
 	std::string_view trivia;
 	GenericLexer::Position start, end;
-
-	friend std::ostream& operator<<(std::ostream& os, const GenericToken& t) {
-		return os << t.start << '>' << t.end << '{' << t.trivia << '}';
-	}
 };
 
 // -----------------------------------------------------------------------------
@@ -265,3 +258,27 @@ constexpr auto is_any_of(const std::string_view& values)
 
 constexpr auto is_path_separator = is_any_of("/\\");
 constexpr auto is_quote = is_any_of("'\"");
+
+// -----------------------------------------------------------------------------
+
+template <>
+struct fmt::formatter<GenericLexer::Position> {
+	constexpr auto parse(format_parse_context& ctx) {
+		return ctx.begin();
+	}
+	template <typename FormatContext>
+	auto format(const GenericLexer::Position& p, FormatContext& ctx) {
+		return format_to(ctx.out(), "l{}:{}", p.line, p.column);
+	}
+};
+
+template <>
+struct fmt::formatter<GenericToken> {
+	constexpr auto parse(format_parse_context& ctx) {
+		return ctx.begin();
+	}
+	template <typename FormatContext>
+	auto format(const GenericToken& t, FormatContext& ctx) {
+		return format_to(ctx.out(), "{}>{}:\"{}\"", t.start, t.end, t.trivia);
+	}
+};
