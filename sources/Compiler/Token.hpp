@@ -11,6 +11,7 @@
 #include "Common/GenericLexer.hpp"
 #include "fmt/format.h"
 #include "TokenTypes.hpp"
+#include "VM/Value.hpp"
 #include <ostream>
 
 // -----------------------------------------------------------------------------
@@ -26,7 +27,8 @@ struct Token : public GenericToken
 #undef __ENUMERATE
 	};
 
-	Type type;
+	Type type { Type::Unknown };
+	Value value { };
 
 	static const char* type_to_string(Token::Type);
 	const char* type_to_string() const { return type_to_string(type); }

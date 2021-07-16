@@ -15,6 +15,8 @@ namespace Bax
 
 const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules = {
 	{ Token::Type::Asterisk, { Precedence::Factor, nullptr, &Parser::binary } },
+	{ Token::Type::Equals, { Precedence::Assign, nullptr, &Parser::binary } },
+	{ Token::Type::Identifier, { Precedence::Lowest, &Parser::identifier, nullptr } },
 	{ Token::Type::Minus, { Precedence::Term, &Parser::unary, &Parser::binary } },
 	{ Token::Type::Number, { Precedence::Lowest, &Parser::literal, nullptr } },
 	{ Token::Type::Plus, { Precedence::Term, &Parser::unary, &Parser::binary } },
@@ -92,7 +94,12 @@ AST::Expression* Parser::expression(Parser::Precedence prec)
 
 AST::Expression* Parser::literal(const Token& token)
 {
-	return new AST::Number(atof(token.trivia.data()));
+	return new AST::Number(token.value.as.number);
+}
+
+AST::Expression* Parser::identifier(const Token& token)
+{
+	return new AST::Identifier(std::string(token.trivia.data(), token.trivia.length()));
 }
 
 AST::Expression* Parser::unary(const Token& token)
@@ -111,14 +118,15 @@ AST::Expression* Parser::binary(const Token& token, AST::Expression* lhs)
 {
 	static const std::unordered_map<Token::Type, AST::BinaryExpression::Operators> binary_operators = {
 		{ Token::Type::Asterisk, AST::BinaryExpression::Operators::Multiply },
+		{ Token::Type::Equals, AST::BinaryExpression::Operators::Assign },
 		{ Token::Type::Minus, AST::BinaryExpression::Operators::Substract },
 		{ Token::Type::Plus, AST::BinaryExpression::Operators::Add },
 		{ Token::Type::Slash, AST::BinaryExpression::Operators::Divide },
 	};
 	return new AST::BinaryExpression(
 		binary_operators.at(token.type),
-		expression(grammar_rules.at(token.type).precedence),
-		lhs
+		lhs,
+		expression(grammar_rules.at(token.type).precedence)
 	);
 }
 

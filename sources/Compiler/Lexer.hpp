@@ -55,10 +55,6 @@ private:
 		return t;
 	}
 
-	Token make_token(Token::Type type) {
-		return make_token(type, [this] () { return consume(1); });
-	}
-
 	template <typename L>
 	Token make_token(L consumer) {
 		Token t;
@@ -71,13 +67,13 @@ private:
 		return t;
 	}
 
-	std::pair<Token::Type, std::string_view> descend_tree(const OperatorTreeNode& node, size_t level = 0)
-	{
-		auto it = node.children.find(peek(level));
-		if (it == node.children.end())
-			return std::make_pair(node.type, consume(std::max(1UL, level)));
-		return descend_tree(it->second, level + 1);
+	Token make_token(Token::Type type) {
+		return make_token(type, [this] () { return consume(1); });
 	}
+
+	std::pair<Token::Type, std::string_view> descend_tree(const OperatorTreeNode& node, size_t level = 0);
+
+	Token lex_number();
 };
 
 }

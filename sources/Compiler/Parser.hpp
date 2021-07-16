@@ -58,6 +58,7 @@ private:
 
 	AST::Expression* expression(Precedence = Precedence::Lowest);
 	AST::Expression* literal(const Token&);
+	AST::Expression* identifier(const Token&);
 	AST::Expression* unary(const Token&);
 	AST::Expression* binary(const Token&, AST::Expression*);
 };

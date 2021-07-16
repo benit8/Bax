@@ -40,7 +40,12 @@ bool Compiler::run(std::string_view source)
 {
 	Parser parser(source);
 	m_ast = parser.run();
-	return m_ast != nullptr;
+	if (m_ast == nullptr)
+		return false;
+
+	m_ast->dump();
+	delete m_ast;
+	return true;
 }
 
 }

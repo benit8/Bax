@@ -51,6 +51,7 @@ PUBLIC
 	sources/Compiler/Parser.hpp
 	sources/Compiler/Token.hpp
 	sources/Compiler/TokenTypes.hpp
+	sources/VM/Value.hpp
 	sources/VM/VM.hpp
 
 PRIVATE
