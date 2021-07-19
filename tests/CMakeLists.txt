@@ -32,8 +32,9 @@ PUBLIC
 	sources/Unit.cpp
 )
 
-add_subdirectory(criterion)
+add_subdirectory(googletest)
 target_link_libraries(${PROJECT_NAME}
 PUBLIC
-	criterion
+	gtest
+	gtest_main
 )

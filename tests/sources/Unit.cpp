@@ -4,11 +4,11 @@
 ** Unit test
 */
 
-#include "criterion/criterion.h"
+#include "gtest/gtest.h"
 
 // -----------------------------------------------------------------------------
 
-Test(Unit, Test1)
+TEST(Unit, Test1)
 {
-	cr_expect_eq(1 + 1, 2);
+	ASSERT_EQ(1 + 1, 2);
 }
