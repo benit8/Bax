@@ -4,11 +4,10 @@
 ** Common / Log.cpp
 */
 
-#include "Common/Assertions.hpp"
-#include "Common/Log.hpp"
+#include "Assertions.hpp"
 #include "fmt/chrono.h"
 #include "fmt/color.h"
-#include "fmt/format.h"
+#include "Log.hpp"
 #include <sys/time.h>
 
 // -----------------------------------------------------------------------------

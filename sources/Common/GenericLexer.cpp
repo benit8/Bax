@@ -4,7 +4,7 @@
 ** Common / GenericLexer.cpp
 */
 
-#include "Common/GenericLexer.hpp"
+#include "GenericLexer.hpp"
 
 // -----------------------------------------------------------------------------
 

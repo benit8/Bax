@@ -4,7 +4,7 @@
 ** VM.cpp
 */
 
-#include "VM/VM.hpp"
+#include "Bax/VM/VM.hpp"
 #include "Common/Log.hpp"
 #include <cstring>
 

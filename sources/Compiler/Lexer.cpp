@@ -4,7 +4,7 @@
 ** Lexer.cpp
 */
 
-#include "Lexer.hpp"
+#include "Bax/Compiler/Lexer.hpp"
 #include "Common/Log.hpp"
 #include <cctype>
 #include <cstdlib>

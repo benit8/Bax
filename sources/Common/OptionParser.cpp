@@ -5,7 +5,7 @@
 */
 
 #include "Assertions.hpp"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "OptionParser.hpp"
 #include <algorithm>
 #include <getopt.h>

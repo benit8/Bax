@@ -1,13 +1,16 @@
 /*
 ** Bax, 2021
 ** Benoît Lormeau <blormeau@outlook.com>
-** Main entry point
+** CLI entry point
 */
 
+#include "Bax/Compiler/Compiler.hpp"
+#include "Bax/VM/VM.hpp"
 #include "Common/Log.hpp"
 #include "Common/OptionParser.hpp"
-#include "Compiler/Compiler.hpp"
-#include "VM/VM.hpp"
+#include "fmt/format.h"
+#include <string>
+#include <vector>
 
 // -----------------------------------------------------------------------------
 
@@ -27,6 +30,11 @@ int main(int argc, char** argv, char** envp)
 	opt.add_argument(args, "args", "Arguments passed to <file>", false);
 	if (!opt.parse(argc, argv))
 		return EXIT_FAILURE;
+
+	if (run_inline.empty() && entrypoint.empty()) {
+		fmt::print(stderr, "WIP CLI\n");
+		return EXIT_FAILURE;
+	}
 
 	// The VM will run compiled code
 	Bax::VM vm(envp);

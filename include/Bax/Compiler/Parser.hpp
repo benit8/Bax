@@ -8,9 +8,9 @@
 
 // -----------------------------------------------------------------------------
 
+#include "Bax/Compiler/AST.hpp"
+#include "Bax/Compiler/Lexer.hpp"
 #include <string_view>
-#include "AST.hpp"
-#include "Lexer.hpp"
 
 // -----------------------------------------------------------------------------
 

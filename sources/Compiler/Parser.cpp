@@ -4,8 +4,8 @@
 ** Parser.cpp
 */
 
+#include "Bax/Compiler/Parser.hpp"
 #include "Common/Log.hpp"
-#include "Parser.hpp"
 #include <iostream>
 
 // -----------------------------------------------------------------------------

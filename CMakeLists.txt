@@ -16,8 +16,15 @@ project(
 	LANGUAGES CXX
 )
 
-add_executable(${PROJECT_NAME})
+add_library(${PROJECT_NAME} SHARED)
+
+# External dependencies
 add_subdirectory(extern)
+
+# set_target_properties(${PROJECT_NAME}
+# PROPERTIES
+# 	POSITION_INDEPENDENT_CODE ON
+# )
 
 target_compile_features(${PROJECT_NAME}
 PUBLIC
@@ -26,39 +33,36 @@ PUBLIC
 
 target_compile_options(${PROJECT_NAME}
 PUBLIC
-	-W -Wall -Wextra
-PRIVATE
-	-fPIC
+	-Wall -Wextra
 	-g3
 )
 
 target_include_directories(${PROJECT_NAME}
 PUBLIC
-	sources
-PRIVATE
+	include
+PROTECTED
 	extern
+	sources
 )
 
 target_sources(${PROJECT_NAME}
 PUBLIC
+	include/Bax/Compiler/Compiler.hpp
+	include/Bax/Compiler/Lexer.hpp
+	include/Bax/Compiler/Parser.hpp
+	include/Bax/Compiler/Token.hpp
+	include/Bax/Compiler/TokenTypes.hpp
+	include/Bax/VM/Value.hpp
+	include/Bax/VM/VM.hpp
+PRIVATE
 	sources/Common/Assertions.hpp
+	sources/Common/GenericLexer.cpp
 	sources/Common/GenericLexer.hpp
+	sources/Common/Log.cpp
 	sources/Common/Log.hpp
+	sources/Common/OptionParser.cpp
 	sources/Common/OptionParser.hpp
 	sources/Common/TTYEscapeSequences.hpp
-	sources/Compiler/Compiler.hpp
-	sources/Compiler/Lexer.hpp
-	sources/Compiler/Parser.hpp
-	sources/Compiler/Token.hpp
-	sources/Compiler/TokenTypes.hpp
-	sources/VM/Value.hpp
-	sources/VM/VM.hpp
-
-PRIVATE
-	sources/main.cpp
-	sources/Common/GenericLexer.cpp
-	sources/Common/Log.cpp
-	sources/Common/OptionParser.cpp
 	sources/Compiler/Compiler.cpp
 	sources/Compiler/Lexer.cpp
 	sources/Compiler/Parser.cpp
@@ -67,11 +71,15 @@ PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME}
-PRIVATE
-	fmt-header-only
-	nlohmann_json::nlohmann_json
-	# ...
+PUBLIC
+	fmt::fmt-header-only
+	# nlohmann_json::nlohmann_json
 )
 
+# CLI program
+add_executable(bax sources/Cli.cpp)
+target_link_libraries(bax PUBLIC Bax)
+
 # Tests
+enable_testing()
 add_subdirectory(tests)

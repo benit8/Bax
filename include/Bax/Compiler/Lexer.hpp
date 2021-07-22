@@ -8,8 +8,8 @@
 
 // -----------------------------------------------------------------------------
 
+#include "Bax/Compiler/Token.hpp"
 #include "Common/GenericLexer.hpp"
-#include "Token.hpp"
 #include <algorithm>
 #include <map>
 #include <unordered_map>
