@@ -13,7 +13,7 @@ endif()
 project(
 	"Bax"
 	VERSION 0.1.0
-	LANGUAGES CXX
+	LANGUAGES C CXX
 )
 
 add_library(${PROJECT_NAME} SHARED)
@@ -32,9 +32,8 @@ PUBLIC
 )
 
 target_compile_options(${PROJECT_NAME}
-PUBLIC
+PRIVATE
 	-Wall -Wextra
-	-g3
 )
 
 target_include_directories(${PROJECT_NAME}
