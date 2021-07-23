@@ -108,14 +108,22 @@ Token Lexer::lex_number()
 	if (next_is(isdigit)) {
 		if (consume_specific('0')) {
 			switch (tolower(peek())) {
-				case 'x': base = 16; break;
-				case 'b': base = 2; break;
-				case '1' ... '9': base = 8; break;
-				default: base = 0; break;
+				case 'x':
+					base = 16;
+					ignore(1);
+					break;
+				case 'b':
+					base = 2;
+					ignore(1);
+					break;
+				case '1' ... '9':
+					base = 8;
+					break;
+				case '.':
+					break;
+				default:
+					goto end;
 			}
-			if (base == 0)
-				goto end;
-			ignore();
 		}
 		while (!is_eof()) {
 			auto p = strchr(base_digits, tolower(peek()));
@@ -125,7 +133,7 @@ Token Lexer::lex_number()
 			if (digit >= base)
 				break;
 			ignore();
-			result = result * 10 + digit;
+			result = result * base + digit;
 		}
 	}
 
