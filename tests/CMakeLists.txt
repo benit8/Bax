@@ -21,7 +21,7 @@ add_test(
 
 target_sources(${PROJECT_NAME}
 PUBLIC
-	sources/Unit.cpp
+	sources/Lexer.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
