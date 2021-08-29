@@ -116,13 +116,12 @@ Token Lexer::lex_number()
 					base = 2;
 					ignore(1);
 					break;
-				case '1' ... '9':
+				case 'o':
 					base = 8;
+					ignore(1);
 					break;
 				case '.':
 					break;
-				default:
-					goto end;
 			}
 		}
 		while (!is_eof()) {
@@ -132,7 +131,7 @@ Token Lexer::lex_number()
 			int digit = p - base_digits;
 			if (digit >= base)
 				break;
-			ignore();
+			ignore(1);
 			result = result * base + digit;
 		}
 	}
