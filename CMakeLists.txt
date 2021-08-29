@@ -76,7 +76,7 @@ PUBLIC
 )
 
 # CLI program
-add_executable(bax sources/Cli.cpp)
+add_executable(bax sources/main.cpp)
 target_link_libraries(bax PUBLIC Bax)
 
 # Tests
