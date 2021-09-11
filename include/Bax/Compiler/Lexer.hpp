@@ -71,7 +71,7 @@ private:
 		return make_token(type, [this] () { return consume(1); });
 	}
 
-	std::pair<Token::Type, std::string_view> descend_tree(const OperatorTreeNode& node, size_t level = 0);
+	std::pair<Token::Type, std::string_view> descend_operator_tree(const OperatorTreeNode& node, size_t level = 0);
 
 	Token lex_number();
 };

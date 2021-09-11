@@ -17,30 +17,95 @@ namespace Bax
 {
 
 const std::unordered_map<std::string_view, Token::Type> Lexer::keywords = {
-	{ "let", Token::Type::Let },
+	{ "class",      Token::Type::Class      },
+	{ "const",      Token::Type::Const      },
+	{ "else",       Token::Type::Else       },
+	{ "extends",    Token::Type::Extends    },
+	{ "for",        Token::Type::For        },
+	{ "if",         Token::Type::If         },
+	{ "implements", Token::Type::Implements },
+	{ "let",        Token::Type::Let        },
+	{ "private",    Token::Type::Private    },
+	{ "protected",  Token::Type::Protected  },
+	{ "public",     Token::Type::Public     },
+	{ "return",     Token::Type::Return     },
+	{ "while",      Token::Type::While      },
 };
 
 const Lexer::OperatorTreeNode Lexer::operator_tree_root = {
 	Token::Type::Unknown, {
-		{'+', { Token::Type::Plus, {
-			{'+', { Token::Type::PlusPlus, {} }},
-			{'=', { Token::Type::PlusEquals, {} }}
+		{'!', { Token::Type::Exclamation, {
+			{'=', { Token::Type::ExclamationEquals, {} }}
 		} }},
-		{'-', { Token::Type::Minus, {
-			{'-', { Token::Type::MinusMinus, {} }},
-			{'=', { Token::Type::MinusEquals, {} }}
+		{'%', { Token::Type::Percent, {
+			{'=', { Token::Type::PercentEquals, {} }}
 		} }},
+		{'&', { Token::Type::Ampersand, {
+			{'&', { Token::Type::AmpersandAmpersand, {
+				{'=', { Token::Type::AmpersandAmpersandEquals, {} }}
+			} }},
+			{'=', { Token::Type::AmpersandEquals, {} }}
+		} }},
+		{'(', { Token::Type::LeftParenthesis, {} }},
+		{')', { Token::Type::RightParenthesis, {} }},
 		{'*', { Token::Type::Asterisk, {
 			{'*', { Token::Type::AsteriskAsterisk, {
 				{'=', { Token::Type::AsteriskAsteriskEquals, {} }}
 			} }},
 			{'=', { Token::Type::AsteriskEquals, {} }}
 		} }},
+		{'+', { Token::Type::Plus, {
+			{'+', { Token::Type::PlusPlus, {} }},
+			{'=', { Token::Type::PlusEquals, {} }}
+		} }},
+		{',', { Token::Type::Comma, {} }},
+		{'-', { Token::Type::Minus, {
+			{'-', { Token::Type::MinusMinus, {} }},
+			{'=', { Token::Type::MinusEquals, {} }}
+		} }},
+		{'.', { Token::Type::Dot, {} }},
 		{'/', { Token::Type::Slash, {
 			{'=', { Token::Type::SlashEquals, {} }}
 		} }},
+		{':', { Token::Type::Colon, {} }},
+		{';', { Token::Type::Semicolon, {} }},
+		{'<', { Token::Type::Less, {
+			{'<', { Token::Type::LessLess, {
+				{'=', { Token::Type::LessLessEquals, {} }}
+			} }},
+			{'=', { Token::Type::LessEquals, {} }}
+		} }},
 		{'=', { Token::Type::Equals, {
 			{'=', { Token::Type::EqualsEquals, {} }}
+		} }},
+		{'>', { Token::Type::Greater, {
+			{'>', { Token::Type::GreaterGreater, {
+				{'=', { Token::Type::GreaterGreaterEquals, {} }}
+			} }},
+			{'=', { Token::Type::GreaterEquals, {} }}
+		} }},
+		{'?', { Token::Type::Question, {
+			{'.', { Token::Type::QuestionDot, {} }},
+			{':', { Token::Type::QuestionColon, {} }},
+			{'?', { Token::Type::QuestionQuestion, {
+				{'=', { Token::Type::QuestionQuestionEquals, {} }}
+			} }},
+		} }},
+		{'[', { Token::Type::LeftBracket, {} }},
+		{']', { Token::Type::RightBracket, {} }},
+		{'^', { Token::Type::Caret, {
+			{'=', { Token::Type::CaretEquals, {} }}
+		} }},
+		{'{', { Token::Type::LeftBrace, {} }},
+		{'|', { Token::Type::Pipe, {
+			{'|', { Token::Type::PipePipe, {
+				{'=', { Token::Type::PipePipeEquals, {} }}
+			} }},
+			{'=', { Token::Type::PipeEquals, {} }}
+		} }},
+		{'}', { Token::Type::RightBrace, {} }},
+		{'~', { Token::Type::Tilde, {
+			{'=', { Token::Type::TildeEquals, {} }}
 		} }},
 	}
 };
@@ -89,7 +154,7 @@ Token Lexer::next()
 	// Operators
 	if (next_is(ispunct)) {
 		return make_token([this] {
-			return descend_tree(operator_tree_root);
+			return descend_operator_tree(operator_tree_root);
 		});
 	}
 
@@ -166,12 +231,12 @@ end:
 	return t;
 }
 
-std::pair<Token::Type, std::string_view> Lexer::descend_tree(const OperatorTreeNode& node, size_t level)
+std::pair<Token::Type, std::string_view> Lexer::descend_operator_tree(const OperatorTreeNode& node, size_t level)
 {
 	auto it = node.children.find(peek(level));
 	if (it == node.children.end())
 		return std::make_pair(node.type, consume(std::max(1UL, level)));
-	return descend_tree(it->second, level + 1);
+	return descend_operator_tree(it->second, level + 1);
 }
 
 }

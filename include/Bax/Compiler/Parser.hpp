@@ -22,7 +22,7 @@ class Parser
 public:
 	enum class Precedence {
 		Lowest,
-		Assign,        // = += -= *= **= /= |= &= ^= >>= <<=
+		Assign,        // = += -= *= **= /= |= &= ^= >>= <<= ??=
 		Ternary,       // ?
 		Or,            // ||
 		And,           // &&
