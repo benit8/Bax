@@ -39,12 +39,11 @@ bool Compiler::do_string(std::string_view source)
 bool Compiler::run(std::string_view source)
 {
 	Parser parser(source);
-	m_ast = parser.run();
+	m_ast = std::move(parser.run());
 	if (m_ast == nullptr)
 		return false;
 
 	m_ast->dump();
-	delete m_ast;
 	return true;
 }
 

@@ -36,8 +36,8 @@ public:
 
 	struct GrammarRule {
 		Precedence precedence;
-		AST::Expression* (Parser::*prefix)(const Token&);
-		AST::Expression* (Parser::*infix)(const Token&, AST::Expression*);
+		Ptr<AST::Expression> (Parser::*prefix)(const Token&);
+		Ptr<AST::Expression> (Parser::*infix)(const Token&, Ptr<AST::Expression>);
 	};
 
 private:
@@ -50,17 +50,19 @@ public:
 	Parser(const std::string_view& source);
 	~Parser();
 
-	AST::Node* run();
+	Ptr<AST::Node> run();
 
 private:
 	const Token& peek() const;
+	bool peek(Token::Type) const;
 	Token consume();
+	bool consume(Token::Type);
 
-	AST::Expression* expression(Precedence = Precedence::Lowest);
-	AST::Expression* literal(const Token&);
-	AST::Expression* identifier(const Token&);
-	AST::Expression* unary(const Token&);
-	AST::Expression* binary(const Token&, AST::Expression*);
+	Ptr<AST::Expression> expression(Precedence = Precedence::Lowest);
+	Ptr<AST::Expression> literal(const Token&);
+	Ptr<AST::Expression> identifier(const Token&);
+	Ptr<AST::Expression> unary(const Token&);
+	Ptr<AST::Expression> binary(const Token&, Ptr<AST::Expression>);
 };
 
 }

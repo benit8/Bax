@@ -19,7 +19,7 @@ namespace Bax
 
 class Compiler
 {
-	AST::Node* m_ast = nullptr;
+	Ptr<AST::Node> m_ast;
 
 public:
 	Compiler();

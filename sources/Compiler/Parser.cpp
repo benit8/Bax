@@ -38,6 +38,11 @@ const Token& Parser::peek() const
 	return m_current_token;
 }
 
+bool Parser::peek(Token::Type type) const
+{
+	return m_current_token.type == type;
+}
+
 Token Parser::consume()
 {
 	Token t = m_current_token;
@@ -45,13 +50,22 @@ Token Parser::consume()
 	return t;
 }
 
-AST::Node* Parser::run()
+bool Parser::consume(Token::Type type)
+{
+	if (consume().type != type) {
+		Log::error("Unexpected token {}, expected {}", m_current_token, Token::type_to_string(type));
+		return false;
+	}
+	return true;
+}
+
+Ptr<AST::Node> Parser::run()
 {
 	// for (Token t = consume(); t.type != Token::Type::Eof; t = consume()) Log::debug("{}", t);
 	return expression();
 }
 
-AST::Expression* Parser::expression(Parser::Precedence prec)
+Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
 {
 	auto token = consume();
 	if (token.type == Token::Type::Eof) {
@@ -86,35 +100,35 @@ AST::Expression* Parser::expression(Parser::Precedence prec)
 		}
 
 		token = consume();
-		node = (this->*it_->second.infix)(token, node);
+		node = (this->*it_->second.infix)(token, std::move(node));
 	}
 
 	return node;
 }
 
-AST::Expression* Parser::literal(const Token& token)
+Ptr<AST::Expression> Parser::literal(const Token& token)
 {
-	return new AST::Number(token.value.as.number);
+	return makeNode<AST::Number>(token.value.as.number);
 }
 
-AST::Expression* Parser::identifier(const Token& token)
+Ptr<AST::Expression> Parser::identifier(const Token& token)
 {
-	return new AST::Identifier(std::string(token.trivia.data(), token.trivia.length()));
+	return makeNode<AST::Identifier>(std::string(token.trivia.data(), token.trivia.length()));
 }
 
-AST::Expression* Parser::unary(const Token& token)
+Ptr<AST::Expression> Parser::unary(const Token& token)
 {
 	static const std::unordered_map<Token::Type, AST::UnaryExpression::Operators> unary_operators = {
 		{ Token::Type::Plus,  AST::UnaryExpression::Operators::Positive },
 		{ Token::Type::Minus, AST::UnaryExpression::Operators::Negative },
 	};
-	return new AST::UnaryExpression(
+	return makeNode<AST::UnaryExpression>(
 		unary_operators.at(token.type),
 		expression(Precedence::Unary)
 	);
 }
 
-AST::Expression* Parser::binary(const Token& token, AST::Expression* lhs)
+Ptr<AST::Expression> Parser::binary(const Token& token, Ptr<AST::Expression> lhs)
 {
 	static const std::unordered_map<Token::Type, AST::BinaryExpression::Operators> binary_operators = {
 		{ Token::Type::Asterisk, AST::BinaryExpression::Operators::Multiply },
@@ -123,9 +137,9 @@ AST::Expression* Parser::binary(const Token& token, AST::Expression* lhs)
 		{ Token::Type::Plus,     AST::BinaryExpression::Operators::Add },
 		{ Token::Type::Slash,    AST::BinaryExpression::Operators::Divide },
 	};
-	return new AST::BinaryExpression(
+	return makeNode<AST::BinaryExpression>(
 		binary_operators.at(token.type),
-		lhs,
+		std::move(lhs),
 		expression(grammar_rules.at(token.type).precedence)
 	);
 }
