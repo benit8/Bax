@@ -26,12 +26,14 @@ public:
 		Ternary,       // ?
 		Or,            // ||
 		And,           // &&
+		Equality,      // == !=
+		Comparison,    // < <= > >=
 		Coalesce,      // ?? ?:
-		Term,          // * ** / % &
-		Factor,        // + - | ^
+		Term,          // + - | ^
+		Factor,        // * ** / % &
 		Shift,         // << >>
 		Unary,         // + - ! ~
-		Property,      // . ( [
+		Property,      // . ?. ( [
 	};
 
 	struct GrammarRule {
@@ -59,12 +61,19 @@ private:
 	bool consume(Token::Type);
 
 	Ptr<AST::Expression> expression(Precedence = Precedence::Lowest);
-	Ptr<AST::Expression> literal(const Token&);
-	Ptr<AST::Expression> identifier(const Token&);
+
+	Ptr<AST::Expression> array(const Token&);
+	Ptr<AST::Expression> glyph(const Token&);
 	Ptr<AST::Expression> group(const Token&);
+	Ptr<AST::Expression> identifier(const Token&);
+	Ptr<AST::Expression> number(const Token&);
+	Ptr<AST::Expression> object(const Token&);
+	Ptr<AST::Expression> string(const Token&);
 	Ptr<AST::Expression> unary(const Token&);
+	Ptr<AST::Expression> assign(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::Expression> binary(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::Expression> call(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::Expression> index(const Token&, Ptr<AST::Expression>);
 };
 
 }

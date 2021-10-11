@@ -50,19 +50,35 @@ namespace Bax
 
 		struct Statement : public Node
 		{
-			virtual ~Statement() override {}
 			virtual const char* class_name() const { return "Statement"; }
-			virtual void dump(int i = 0) const { Node::dump(i); }
 		};
 
 		struct Expression : public Node
 		{
-			virtual ~Expression() override {}
 			virtual const char* class_name() const { return "Expression"; }
-			virtual void dump(int i = 0) const { Node::dump(i); }
 		};
 
-		struct Number : public Expression
+		struct Literal : public Expression
+		{
+			virtual const char* class_name() const { return "Literal"; }
+		};
+
+		struct Glyph : public Literal
+		{
+			uint32_t value;
+
+			Glyph(uint32_t v)
+			: value(v)
+			{}
+
+			virtual ~Glyph() override {}
+			virtual const char* class_name() const { return "Glyph"; }
+			virtual void dump(int i = 0) const {
+				priv::print(i, "{}({:c}/{:u})\n", class_name(), value, value);
+			}
+		};
+
+		struct Number : public Literal
 		{
 			double value;
 
@@ -74,6 +90,21 @@ namespace Bax
 			virtual const char* class_name() const { return "Number"; }
 			virtual void dump(int i = 0) const {
 				priv::print(i, "{}({:g})\n", class_name(), value);
+			}
+		};
+
+		struct String : public Literal
+		{
+			std::string value;
+
+			String(std::string v)
+			: value(v)
+			{}
+
+			virtual ~String() override {}
+			virtual const char* class_name() const { return "String"; }
+			virtual void dump(int i = 0) const {
+				priv::print(i, "{}({})\n", class_name(), value);
 			}
 		};
 
@@ -95,8 +126,11 @@ namespace Bax
 		struct UnaryExpression : public Expression
 		{
 			enum class Operators {
+				BitwiseNot,
+				BooleanNot,
+				Decrement,
+				Increment,
 				Negative,
-				Not,
 				Positive,
 			} op;
 
@@ -110,8 +144,45 @@ namespace Bax
 			virtual ~UnaryExpression() override {}
 			virtual const char* class_name() const { return "UnaryExpression"; }
 			virtual void dump(int i = 0) const {
-				Node::dump(i);
-				priv::print(i + 1, "{}\n", (int)op);
+				priv::print(i, "{}({})\n", class_name(), (int)op);
+				rhs->dump(i + 1);
+			}
+		};
+
+		struct AssignExpression : public Expression
+		{
+			enum class Operators {
+				Add,
+				Assign,
+				BitwiseAnd,
+				BitwiseLeftShift,
+				BitwiseOr,
+				BitwiseRightShift,
+				BitwiseXor,
+				BooleanAnd,
+				BooleanOr,
+				Coalesce,
+				Divide,
+				Modulo,
+				Multiply,
+				Power,
+				Substract,
+			} op;
+
+			Ptr<AST::Expression> lhs;
+			Ptr<AST::Expression> rhs;
+
+			AssignExpression(Operators o, Ptr<AST::Expression> l, Ptr<AST::Expression> r)
+			: op(o)
+			, lhs(std::move(l))
+			, rhs(std::move(r))
+			{}
+
+			virtual ~AssignExpression() override {}
+			virtual const char* class_name() const { return "AssignExpression"; }
+			virtual void dump(int i = 0) const {
+				priv::print(i, "{}({})\n", class_name(), (int)op);
+				lhs->dump(i + 1);
 				rhs->dump(i + 1);
 			}
 		};
@@ -119,12 +190,30 @@ namespace Bax
 		struct BinaryExpression : public Expression
 		{
 			enum class Operators {
+				Access,
 				Add,
 				Assign,
+				BitwiseAnd,
+				BitwiseLeftShift,
+				BitwiseOr,
+				BitwiseRightShift,
+				BitwiseXor,
+				BooleanAnd,
+				BooleanOr,
+				Coalesce,
 				Divide,
+				Equals,
+				GreaterThan,
+				GreaterThanOrEquals,
+				Inequals,
+				LessThan,
+				LessThanOrEquals,
+				Modulo,
 				Multiply,
+				NullsafeAccess,
 				Power,
 				Substract,
+				Ternary,
 			} op;
 
 			Ptr<AST::Expression> lhs;
@@ -139,8 +228,7 @@ namespace Bax
 			virtual ~BinaryExpression() override {}
 			virtual const char* class_name() const { return "BinaryExpression"; }
 			virtual void dump(int i = 0) const {
-				Node::dump(i);
-				priv::print(i + 1, "{}\n", (int)op);
+				priv::print(i, "{}({})\n", class_name(), (int)op);
 				lhs->dump(i + 1);
 				rhs->dump(i + 1);
 			}

@@ -43,6 +43,6 @@ struct fmt::formatter<Bax::Token> {
 	}
 	template <typename FormatContext>
 	auto format(const Bax::Token& t, FormatContext& ctx) {
-		return format_to(ctx.out(), "{}(\"{}\")[{}][{}]", t.type_to_string(), t.trivia, t.start, t.end);
+		return format_to(ctx.out(), "{}(\"{}\")[{}->{}]", t.type_to_string(), t.trivia, t.start, t.end);
 	}
 };

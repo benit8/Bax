@@ -33,6 +33,7 @@
 	__ENUMERATE(Extends)                  \
 	__ENUMERATE(False)                    \
 	__ENUMERATE(For)                      \
+	__ENUMERATE(Glyph)                    \
 	__ENUMERATE(Greater)                  \
 	__ENUMERATE(GreaterEquals)            \
 	__ENUMERATE(GreaterGreater)           \
@@ -51,6 +52,7 @@
 	__ENUMERATE(Minus)                    \
 	__ENUMERATE(MinusEquals)              \
 	__ENUMERATE(MinusMinus)               \
+	__ENUMERATE(Null)                     \
 	__ENUMERATE(Number)                   \
 	__ENUMERATE(Percent)                  \
 	__ENUMERATE(PercentEquals)            \
@@ -76,8 +78,8 @@
 	__ENUMERATE(Semicolon)                \
 	__ENUMERATE(Slash)                    \
 	__ENUMERATE(SlashEquals)              \
+	__ENUMERATE(String)                   \
 	__ENUMERATE(Tilde)                    \
-	__ENUMERATE(TildeEquals)              \
 	__ENUMERATE(True)                     \
 	__ENUMERATE(Unknown)                  \
 	__ENUMERATE(While)

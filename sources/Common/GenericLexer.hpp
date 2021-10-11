@@ -92,6 +92,8 @@ public:
 	std::string_view consume(size_t count);
 	std::string_view consume_all();
 	std::string_view consume_line();
+	std::string_view consume_until(char);
+	std::string_view consume_until(const char*);
 	std::string_view consume_quoted_string(char escape_char = 0);
 	std::string consume_and_unescape_string(char escape_char = '\\');
 	constexpr char consume_escaped_character(char escape_char = '\\', std::string_view escape_map = "n\nr\rt\tb\bf\f")
@@ -126,24 +128,6 @@ public:
 		while (!is_eof() && pred(peek()))
 			advance(1);
 		size_t length = tell() - start;
-
-		if (length == 0)
-			return {};
-		return m_input.substr(start, length);
-	}
-
-	template <typename T>
-	std::string_view consume_until(const T& stop)
-	{
-		size_t start = tell();
-		while (!is_eof() && peek() != stop)
-			advance(1);
-		size_t length = tell() - start;
-
-		if constexpr (requires { stop.length(); })
-			ignore(stop.length());
-		else
-			ignore(sizeof(stop));
 
 		if (length == 0)
 			return {};

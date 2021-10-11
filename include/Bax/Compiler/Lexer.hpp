@@ -73,7 +73,9 @@ private:
 
 	std::pair<Token::Type, std::string_view> descend_operator_tree(const OperatorTreeNode& node, size_t level = 0);
 
+	Token lex_glyph();
 	Token lex_number();
+	Token lex_string();
 };
 
 }

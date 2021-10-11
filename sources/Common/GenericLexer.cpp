@@ -44,6 +44,38 @@ std::string_view GenericLexer::consume_line()
 	return m_input.substr(start, length);
 }
 
+// Consume and return characters until `stop` is peek'd
+// The `stop` character is ignored, as it is user-defined
+std::string_view GenericLexer::consume_until(char stop)
+{
+	size_t start = tell();
+	while (!is_eof() && peek() != stop)
+		advance(1);
+	size_t length = tell() - start;
+
+	ignore();
+
+	if (length == 0)
+		return {};
+	return m_input.substr(start, length);
+}
+
+// Consume and return characters until the string `stop` is found
+// The `stop` string is ignored, as it is user-defined
+std::string_view GenericLexer::consume_until(const char* stop)
+{
+	size_t start = tell();
+	while (!is_eof() && !next_is(stop))
+		advance(1);
+	size_t length = tell() - start;
+
+	ignore(__builtin_strlen(stop));
+
+	if (length == 0)
+		return {};
+	return m_input.substr(start, length);
+}
+
 std::string_view GenericLexer::consume_quoted_string(char escape_char)
 {
 	if (!next_is(is_quote))

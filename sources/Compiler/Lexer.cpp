@@ -21,14 +21,17 @@ const std::unordered_map<std::string_view, Token::Type> Lexer::keywords = {
 	{ "const",      Token::Type::Const      },
 	{ "else",       Token::Type::Else       },
 	{ "extends",    Token::Type::Extends    },
+	{ "false",      Token::Type::False      },
 	{ "for",        Token::Type::For        },
 	{ "if",         Token::Type::If         },
 	{ "implements", Token::Type::Implements },
 	{ "let",        Token::Type::Let        },
+	{ "null",       Token::Type::Null       },
 	{ "private",    Token::Type::Private    },
 	{ "protected",  Token::Type::Protected  },
 	{ "public",     Token::Type::Public     },
 	{ "return",     Token::Type::Return     },
+	{ "true",       Token::Type::True       },
 	{ "while",      Token::Type::While      },
 };
 
@@ -104,9 +107,7 @@ const Lexer::OperatorTreeNode Lexer::operator_tree_root = {
 			{'=', { Token::Type::PipeEquals, {} }}
 		} }},
 		{'}', { Token::Type::RightBrace, {} }},
-		{'~', { Token::Type::Tilde, {
-			{'=', { Token::Type::TildeEquals, {} }}
-		} }},
+		{'~', { Token::Type::Tilde, {} }},
 	}
 };
 
@@ -132,8 +133,9 @@ Token Lexer::next()
 			break;
 	}
 
-	if (is_eof())
+	if (is_eof()) {
 		return make_token(Token::Type::Eof);
+	}
 
 	// Identifiers
 	if (next_is(is_identifier_start)) {
@@ -149,6 +151,16 @@ Token Lexer::next()
 	// Numbers
 	if (next_is(isdigit) || (next_is('.') && isdigit(peek(1)))) {
 		return lex_number();
+	}
+
+	// Glyphs
+	if (next_is('\'')) {
+		return lex_glyph();
+	}
+
+	// Strings
+	if (next_is('"')) {
+		return lex_string();
 	}
 
 	// Operators
@@ -221,7 +233,6 @@ Token Lexer::lex_number()
 		result *= pow(10, is_exponent_negative ? -exponent : exponent);
 	}
 
-end:
 	Token t;
 	t.type = Token::Type::Number;
 	t.start = start_position;
@@ -229,6 +240,20 @@ end:
 	t.trivia = m_input.substr(start_index, tell() - start_index);
 	t.value.as.number = result;
 	return t;
+}
+
+Token Lexer::lex_glyph()
+{
+	return make_token(Token::Type::Glyph, [this] {
+		return consume_until('\'');
+	});
+}
+
+Token Lexer::lex_string()
+{
+	return make_token(Token::Type::String, [this] {
+		return consume_until('"');
+	});
 }
 
 std::pair<Token::Type, std::string_view> Lexer::descend_operator_tree(const OperatorTreeNode& node, size_t level)
