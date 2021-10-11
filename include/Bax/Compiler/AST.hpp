@@ -145,6 +145,26 @@ namespace Bax
 				rhs->dump(i + 1);
 			}
 		};
+
+		struct CallExpression : public Expression
+		{
+			Ptr<AST::Expression> lhs;
+			std::vector<Ptr<AST::Expression>> arguments;
+
+			CallExpression(Ptr<AST::Expression> l, std::vector<Ptr<AST::Expression>> args)
+			: lhs(std::move(l))
+			, arguments(std::move(args))
+			{}
+
+			virtual ~CallExpression() override {}
+			virtual const char* class_name() const { return "CallExpression"; }
+			virtual void dump(int i = 0) const {
+				Node::dump(i);
+				lhs->dump(i + 1);
+				for (auto &arg : arguments)
+					arg->dump(i + 1);
+			}
+		};
 	}
 }
 

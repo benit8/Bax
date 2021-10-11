@@ -61,8 +61,10 @@ private:
 	Ptr<AST::Expression> expression(Precedence = Precedence::Lowest);
 	Ptr<AST::Expression> literal(const Token&);
 	Ptr<AST::Expression> identifier(const Token&);
+	Ptr<AST::Expression> group(const Token&);
 	Ptr<AST::Expression> unary(const Token&);
 	Ptr<AST::Expression> binary(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::Expression> call(const Token&, Ptr<AST::Expression>);
 };
 
 }

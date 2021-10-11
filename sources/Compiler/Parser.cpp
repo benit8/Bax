@@ -5,6 +5,7 @@
 */
 
 #include "Bax/Compiler/Parser.hpp"
+#include "Common/Assertions.hpp"
 #include "Common/Log.hpp"
 #include <iostream>
 
@@ -14,13 +15,14 @@ namespace Bax
 {
 
 const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules = {
-	{ Token::Type::Asterisk,   { Precedence::Factor, nullptr,             &Parser::binary } },
-	{ Token::Type::Equals,     { Precedence::Assign, nullptr,             &Parser::binary } },
-	{ Token::Type::Identifier, { Precedence::Lowest, &Parser::identifier, nullptr } },
-	{ Token::Type::Minus,      { Precedence::Term,   &Parser::unary,      &Parser::binary } },
-	{ Token::Type::Number,     { Precedence::Lowest, &Parser::literal,    nullptr } },
-	{ Token::Type::Plus,       { Precedence::Term,   &Parser::unary,      &Parser::binary } },
-	{ Token::Type::Slash,      { Precedence::Factor, nullptr,             &Parser::binary } },
+	{ Token::Type::Asterisk,        { Precedence::Factor,   nullptr,             &Parser::binary } },
+	{ Token::Type::Equals,          { Precedence::Assign,   nullptr,             &Parser::binary } },
+	{ Token::Type::Identifier,      { Precedence::Lowest,   &Parser::identifier, nullptr         } },
+	{ Token::Type::LeftParenthesis, { Precedence::Property, &Parser::group,      &Parser::call   } },
+	{ Token::Type::Minus,           { Precedence::Term,     &Parser::unary,      &Parser::binary } },
+	{ Token::Type::Number,          { Precedence::Lowest,   &Parser::literal,    nullptr         } },
+	{ Token::Type::Plus,            { Precedence::Term,     &Parser::unary,      &Parser::binary } },
+	{ Token::Type::Slash,           { Precedence::Factor,   nullptr,             &Parser::binary } },
 };
 
 // -----------------------------------------------------------------------------
@@ -116,6 +118,12 @@ Ptr<AST::Expression> Parser::identifier(const Token& token)
 	return makeNode<AST::Identifier>(std::string(token.trivia.data(), token.trivia.length()));
 }
 
+Ptr<AST::Expression> Parser::group(const Token&)
+{
+	auto expr = expression();
+	return consume(Token::Type::RightParenthesis) ? std::move(expr) : nullptr;
+}
+
 Ptr<AST::Expression> Parser::unary(const Token& token)
 {
 	static const std::unordered_map<Token::Type, AST::UnaryExpression::Operators> unary_operators = {
@@ -131,17 +139,31 @@ Ptr<AST::Expression> Parser::unary(const Token& token)
 Ptr<AST::Expression> Parser::binary(const Token& token, Ptr<AST::Expression> lhs)
 {
 	static const std::unordered_map<Token::Type, AST::BinaryExpression::Operators> binary_operators = {
-		{ Token::Type::Asterisk, AST::BinaryExpression::Operators::Multiply },
-		{ Token::Type::Equals,   AST::BinaryExpression::Operators::Assign },
+		{ Token::Type::Asterisk, AST::BinaryExpression::Operators::Multiply  },
+		{ Token::Type::Equals,   AST::BinaryExpression::Operators::Assign    },
 		{ Token::Type::Minus,    AST::BinaryExpression::Operators::Substract },
-		{ Token::Type::Plus,     AST::BinaryExpression::Operators::Add },
-		{ Token::Type::Slash,    AST::BinaryExpression::Operators::Divide },
+		{ Token::Type::Plus,     AST::BinaryExpression::Operators::Add       },
+		{ Token::Type::Slash,    AST::BinaryExpression::Operators::Divide    },
 	};
 	return makeNode<AST::BinaryExpression>(
 		binary_operators.at(token.type),
 		std::move(lhs),
 		expression(grammar_rules.at(token.type).precedence)
 	);
+}
+
+Ptr<AST::Expression> Parser::call(const Token&, Ptr<AST::Expression> lhs)
+{
+	std::vector<Ptr<AST::Expression>> arguments;
+
+	while (!peek(Token::Type::RightParenthesis)) {
+		if (!arguments.empty() && !consume(Token::Type::Comma))
+			return nullptr;
+		arguments.push_back(expression());
+	}
+	ASSERT(consume(Token::Type::RightParenthesis));
+
+	return makeNode<AST::CallExpression>(std::move(lhs), std::move(arguments));
 }
 
 }
