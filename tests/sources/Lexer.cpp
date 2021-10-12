@@ -126,7 +126,7 @@ TEST(Lexer, NumberBinary)
 
 TEST(Lexer, NumberOctal)
 {
-	std::string_view source = "0644";
+	std::string_view source = "0o644";
 	Bax::Lexer lexer(source);
 
 	auto token = lexer.next();
@@ -135,7 +135,7 @@ TEST(Lexer, NumberOctal)
 	ASSERT_EQ(token.start.line, 1);
 	ASSERT_EQ(token.start.column, 1);
 	ASSERT_EQ(token.end.line, 1);
-	ASSERT_EQ(token.end.column, 5);
+	ASSERT_EQ(token.end.column, 6);
 	ASSERT_EQ(token.value.as.number, 0644);
 }
 
