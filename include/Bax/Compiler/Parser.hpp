@@ -74,6 +74,8 @@ private:
 	Ptr<AST::Expression> binary(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::Expression> call(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::Expression> index(const Token&, Ptr<AST::Expression>);
+
+	uint32_t parse_escape_sequence(std::string_view::const_iterator&);
 };
 
 }

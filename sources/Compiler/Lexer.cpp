@@ -176,83 +176,76 @@ Token Lexer::next()
 Token Lexer::lex_number()
 {
 	static auto base_digits = "0123456789abcdef";
+	static const std::unordered_map<char, int> base_prefixes = {
+		{ 'b',  2 },
+		{ 'o',  8 },
+		{ 'x', 16 },
+	};
 
 	int base = 10;
-	double result = 0;
 	auto start_index = tell();
 	auto start_position = position();
 
 	if (next_is(isdigit)) {
-		if (consume_specific('0')) {
-			switch (tolower(peek())) {
-				case 'x':
-					base = 16;
-					ignore(1);
-					break;
-				case 'b':
-					base = 2;
-					ignore(1);
-					break;
-				case 'o':
-					base = 8;
-					ignore(1);
-					break;
-				case '.':
-					break;
-			}
-		}
-		while (!is_eof()) {
+		if (consume_specific('0') && base_prefixes.contains(tolower(peek())))
+			base = base_prefixes.at(consume());
+		for (; !is_eof(); ignore(1)) {
 			auto p = strchr(base_digits, tolower(peek()));
 			if (p == nullptr)
 				break;
 			int digit = p - base_digits;
 			if (digit >= base)
 				break;
-			ignore(1);
-			result = result * base + digit;
 		}
 	}
 
-	if (base == 10 && consume_specific('.')) {
-		int fraction = 0;
-		unsigned divider = 1;
-		for (; next_is(isdigit); divider *= 10)
-			fraction = fraction * 10 + (consume() - '0');
-		result += fraction / (double)divider;
+	if (base == 10) {
+		if (consume_specific('.')) {
+			ignore_while(isdigit);
+		}
+
+		if (tolower(peek()) == 'e') {
+			ignore();
+			consume_specific('+') || consume_specific('-');
+			ignore_while(isdigit);
+		}
 	}
 
-	if (base == 10 && tolower(peek()) == 'e') {
-		ignore();
-		bool is_exponent_negative = false;
-		if (consume_specific('+')) {}
-		else if (consume_specific('-'))
-			is_exponent_negative = true;
-		int exponent = 0;
-		while (next_is(isdigit))
-			exponent = exponent * 10 + (consume() - '0');
-		result *= pow(10, is_exponent_negative ? -exponent : exponent);
-	}
-
-	Token t;
-	t.type = Token::Type::Number;
-	t.start = start_position;
-	t.end = position();
-	t.trivia = m_input.substr(start_index, tell() - start_index);
-	t.value.as.number = result;
-	return t;
+	return {
+		m_input.substr(start_index, tell() - start_index),
+		start_position,
+		position(),
+		Token::Type::Number
+	};
 }
 
 Token Lexer::lex_glyph()
 {
-	return make_token(Token::Type::Glyph, [this] {
-		return consume_until('\'');
+	return make_token([this] {
+		ignore(1);
+		auto start = tell();
+		for (; !is_eof() && !next_is('\n') && !next_is('\''); ignore(1)) {
+			if (next_is("\\'"))
+				ignore(2);
+		}
+		return consume_specific('\'')
+			? std::make_pair(Token::Type::Glyph, m_input.substr(start, tell() - start - 1))
+			: std::make_pair(Token::Type::UnterminatedGlyph, std::string_view {});
 	});
 }
 
 Token Lexer::lex_string()
 {
-	return make_token(Token::Type::String, [this] {
-		return consume_until('"');
+	return make_token([this] {
+		ignore(1);
+		auto start = tell();
+		for (; !is_eof() && !next_is('"'); ignore(1)) {
+			if (next_is("\\\""))
+				ignore(2);
+		}
+		return consume_specific('"')
+			? std::make_pair(Token::Type::String, m_input.substr(start, tell() - start - 1))
+			: std::make_pair(Token::Type::UnterminatedString, std::string_view {});
 	});
 }
 

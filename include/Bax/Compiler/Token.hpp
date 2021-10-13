@@ -28,7 +28,6 @@ struct Token : public GenericToken
 	};
 
 	Type type { Type::Unknown };
-	Value value { };
 
 	static const char* type_to_string(Token::Type);
 	const char* type_to_string() const { return type_to_string(type); }

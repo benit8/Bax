@@ -71,10 +71,9 @@ namespace Bax
 			: value(v)
 			{}
 
-			virtual ~Glyph() override {}
 			virtual const char* class_name() const { return "Glyph"; }
 			virtual void dump(int i = 0) const {
-				priv::print(i, "{}({:c}/{:u})\n", class_name(), value, value);
+				priv::print(i, "{}({:c}|{:d})\n", class_name(), value, value);
 			}
 		};
 
@@ -86,7 +85,6 @@ namespace Bax
 			: value(v)
 			{}
 
-			virtual ~Number() override {}
 			virtual const char* class_name() const { return "Number"; }
 			virtual void dump(int i = 0) const {
 				priv::print(i, "{}({:g})\n", class_name(), value);
@@ -98,13 +96,12 @@ namespace Bax
 			std::string value;
 
 			String(std::string v)
-			: value(v)
+			: value(std::move(v))
 			{}
 
-			virtual ~String() override {}
 			virtual const char* class_name() const { return "String"; }
 			virtual void dump(int i = 0) const {
-				priv::print(i, "{}({})\n", class_name(), value);
+				priv::print(i, "{}({:s})\n", class_name(), value);
 			}
 		};
 
@@ -116,7 +113,6 @@ namespace Bax
 			: name(std::move(n))
 			{}
 
-			virtual ~Identifier() override {}
 			virtual const char* class_name() const { return "Identifier"; }
 			virtual void dump(int i = 0) const {
 				priv::print(i, "{}({})\n", class_name(), name);
@@ -141,7 +137,6 @@ namespace Bax
 			, rhs(std::move(r))
 			{}
 
-			virtual ~UnaryExpression() override {}
 			virtual const char* class_name() const { return "UnaryExpression"; }
 			virtual void dump(int i = 0) const {
 				priv::print(i, "{}({})\n", class_name(), (int)op);
@@ -178,7 +173,6 @@ namespace Bax
 			, rhs(std::move(r))
 			{}
 
-			virtual ~AssignExpression() override {}
 			virtual const char* class_name() const { return "AssignExpression"; }
 			virtual void dump(int i = 0) const {
 				priv::print(i, "{}({})\n", class_name(), (int)op);
@@ -225,7 +219,6 @@ namespace Bax
 			, rhs(std::move(r))
 			{}
 
-			virtual ~BinaryExpression() override {}
 			virtual const char* class_name() const { return "BinaryExpression"; }
 			virtual void dump(int i = 0) const {
 				priv::print(i, "{}({})\n", class_name(), (int)op);
@@ -244,7 +237,6 @@ namespace Bax
 			, arguments(std::move(args))
 			{}
 
-			virtual ~CallExpression() override {}
 			virtual const char* class_name() const { return "CallExpression"; }
 			virtual void dump(int i = 0) const {
 				Node::dump(i);

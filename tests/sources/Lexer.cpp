@@ -46,7 +46,6 @@ TEST(Lexer, InvalidNumber)
 	ASSERT_EQ(token.start.column, 1);
 	ASSERT_EQ(token.end.line, 1);
 	ASSERT_EQ(token.end.column, 2);
-	ASSERT_EQ(token.value.as.number, 0);
 }
 
 TEST(Lexer, NumberInteger)
@@ -61,7 +60,6 @@ TEST(Lexer, NumberInteger)
 	ASSERT_EQ(token.start.column, 1);
 	ASSERT_EQ(token.end.line, 1);
 	ASSERT_EQ(token.end.column, 3);
-	ASSERT_EQ(token.value.as.number, 12);
 }
 
 TEST(Lexer, NumberDecimal)
@@ -76,7 +74,6 @@ TEST(Lexer, NumberDecimal)
 	ASSERT_EQ(token.start.column, 1);
 	ASSERT_EQ(token.end.line, 1);
 	ASSERT_EQ(token.end.column, 7);
-	ASSERT_DOUBLE_EQ(token.value.as.number, 64.265);
 }
 
 TEST(Lexer, NumberExponent)
@@ -91,7 +88,6 @@ TEST(Lexer, NumberExponent)
 	ASSERT_EQ(token.start.column, 1);
 	ASSERT_EQ(token.end.line, 1);
 	ASSERT_EQ(token.end.column, 4);
-	ASSERT_DOUBLE_EQ(token.value.as.number, 3e5);
 }
 
 TEST(Lexer, NumberNegativeExponent)
@@ -106,7 +102,6 @@ TEST(Lexer, NumberNegativeExponent)
 	ASSERT_EQ(token.start.column, 1);
 	ASSERT_EQ(token.end.line, 1);
 	ASSERT_EQ(token.end.column, 5);
-	ASSERT_DOUBLE_EQ(token.value.as.number, 3e-5);
 }
 
 TEST(Lexer, NumberBinary)
@@ -121,7 +116,6 @@ TEST(Lexer, NumberBinary)
 	ASSERT_EQ(token.start.column, 1);
 	ASSERT_EQ(token.end.line, 1);
 	ASSERT_EQ(token.end.column, 11);
-	ASSERT_EQ(token.value.as.number, 0b00110011);
 }
 
 TEST(Lexer, NumberOctal)
@@ -136,7 +130,6 @@ TEST(Lexer, NumberOctal)
 	ASSERT_EQ(token.start.column, 1);
 	ASSERT_EQ(token.end.line, 1);
 	ASSERT_EQ(token.end.column, 6);
-	ASSERT_EQ(token.value.as.number, 0644);
 }
 
 TEST(Lexer, NumberHexadecimal)
@@ -151,7 +144,6 @@ TEST(Lexer, NumberHexadecimal)
 	ASSERT_EQ(token.start.column, 1);
 	ASSERT_EQ(token.end.line, 1);
 	ASSERT_EQ(token.end.column, 11);
-	ASSERT_EQ(token.value.as.number, 0xDEADBEEF);
 }
 
 TEST(Lexer, IdentifierAndKeywords)

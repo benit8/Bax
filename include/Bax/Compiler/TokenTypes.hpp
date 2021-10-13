@@ -82,4 +82,6 @@
 	__ENUMERATE(Tilde)                    \
 	__ENUMERATE(True)                     \
 	__ENUMERATE(Unknown)                  \
+	__ENUMERATE(UnterminatedGlyph)        \
+	__ENUMERATE(UnterminatedString)       \
 	__ENUMERATE(While)

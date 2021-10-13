@@ -8,6 +8,7 @@
 #include "Common/Assertions.hpp"
 #include "Common/Log.hpp"
 #include <iostream>
+#include <sstream>
 
 // -----------------------------------------------------------------------------
 
@@ -156,8 +157,15 @@ Ptr<AST::Expression> Parser::array(const Token&)
 
 Ptr<AST::Expression> Parser::glyph(const Token& token)
 {
-	// TODO: parse the source view here
-	return makeNode<AST::Glyph>(token.value.as.number);
+	auto t = token.trivia.cbegin();
+	uint32_t value = (*t == '\\') ? parse_escape_sequence(++t) : *t;
+
+	if (++t != token.trivia.cend()) {
+		Log::error("Invalid multi-glyph expression: {}", token);
+		return nullptr;
+	}
+
+	return makeNode<AST::Glyph>(value);
 }
 
 Ptr<AST::Expression> Parser::group(const Token&)
@@ -173,8 +181,58 @@ Ptr<AST::Expression> Parser::identifier(const Token& token)
 
 Ptr<AST::Expression> Parser::number(const Token& token)
 {
-	// TODO: parse the source view here
-	return makeNode<AST::Number>(token.value.as.number);
+	static auto base_digits = "0123456789abcdef";
+	static const std::unordered_map<char, int> base_prefixes = {
+		{ 'b',  2 },
+		{ 'o',  8 },
+		{ 'x', 16 },
+	};
+
+	auto t = token.trivia.cbegin();
+	int base = 10;
+	double result = 0;
+
+	if (isdigit(*t)) {
+		if (*t == '0' && base_prefixes.contains(*(++t))) {
+			base = base_prefixes.at(*t++);
+		}
+		for (; *t != '\0'; ++t) {
+			auto p = strchr(base_digits, tolower(*t));
+			if (p == nullptr)
+				break;
+			int digit = p - base_digits;
+			if (digit >= base)
+				break;
+			result = result * base + digit;
+		}
+	}
+
+	if (base == 10) {
+		if (*t == '.') {
+			int fraction = 0;
+			unsigned divider = 1;
+			for (++t; isdigit(*t); divider *= 10, ++t)
+				fraction = fraction * 10 + (*t - '0');
+			result += fraction / (double)divider;
+		}
+
+		if (tolower(*t) == 'e') {
+			++t;
+			bool is_exponent_negative = false;
+			if (*t == '+') {
+				++t;
+			} else if (*t == '-') {
+				++t;
+				is_exponent_negative = true;
+			}
+			int exponent = 0;
+			for (; isdigit(*t); ++t)
+				exponent = exponent * 10 + (*t - '0');
+			result *= pow(10, is_exponent_negative ? -exponent : exponent);
+		}
+	}
+
+	return makeNode<AST::Number>(result);
 }
 
 Ptr<AST::Expression> Parser::object(const Token&)
@@ -184,8 +242,13 @@ Ptr<AST::Expression> Parser::object(const Token&)
 
 Ptr<AST::Expression> Parser::string(const Token& token)
 {
-	// TODO: parse the source view here
-	return makeNode<AST::String>(std::string(token.trivia.data(), token.trivia.length()));
+	std::ostringstream oss;
+
+	for (auto it = token.trivia.cbegin(); it != token.trivia.cend(); ++it) {
+		oss << (*it == '\\' ? (char)parse_escape_sequence(++it) : *it);
+	}
+
+	return makeNode<AST::String>(oss.str());
 }
 
 Ptr<AST::Expression> Parser::unary(const Token& token)
@@ -271,7 +334,10 @@ Ptr<AST::Expression> Parser::call(const Token&, Ptr<AST::Expression> lhs)
 	while (!peek(Token::Type::RightParenthesis)) {
 		if (!arguments.empty() && !consume(Token::Type::Comma))
 			return nullptr;
-		arguments.push_back(expression());
+		auto arg = expression();
+		if (!arg)
+			return nullptr;
+		arguments.push_back(std::move(arg));
 	}
 	ASSERT(consume(Token::Type::RightParenthesis));
 
@@ -281,6 +347,50 @@ Ptr<AST::Expression> Parser::call(const Token&, Ptr<AST::Expression> lhs)
 Ptr<AST::Expression> Parser::index(const Token&, Ptr<AST::Expression> lhs)
 {
 	return nullptr;
+}
+
+// -----------------------------------------------------------------------------
+
+uint32_t Parser::parse_escape_sequence(std::string_view::const_iterator& it)
+{
+	// Assume the '\' is already skipped
+
+	switch (*it) {
+		case 'a': return '\a';
+		case 'b': return '\b';
+		case 'e': return '\e';
+		case 'f': return '\f';
+		case 'n': return '\n';
+		case 'r': return '\r';
+		case 't': return '\t';
+		case 'v': return '\v';
+		case '\\': return '\\';
+		case '\'': return '\'';
+		case '"': return '"';
+		case '?': return '?';
+
+		case 'u': {
+			// Must be composed of exactly 4 hex characters
+			bool valid = true;
+			for (auto i = 1; i <= 4; ++i) {
+				if (!isxdigit(*(it + i))) {
+					valid = false;
+					break;
+				}
+			}
+			if (!valid)
+				break;
+
+			uint32_t value = 0;
+			for (++it; isxdigit(*it); ++it)
+				value = value * 16 + (tolower(*it) - (isdigit(*it) ? '0' : 'a' - 10));
+			--it;
+			return value;
+		}
+
+		default: break;
+	}
+	return *--it;
 }
 
 }
