@@ -66,6 +66,7 @@ private:
 	Ptr<AST::Expression> glyph(const Token&);
 	Ptr<AST::Expression> group(const Token&);
 	Ptr<AST::Expression> identifier(const Token&);
+	Ptr<AST::Expression> literal(const Token&);
 	Ptr<AST::Expression> number(const Token&);
 	Ptr<AST::Expression> object(const Token&);
 	Ptr<AST::Expression> string(const Token&);

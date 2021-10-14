@@ -63,6 +63,25 @@ namespace Bax
 			virtual const char* class_name() const { return "Literal"; }
 		};
 
+		struct Null : public Literal
+		{
+			virtual const char* class_name() const { return "Null"; }
+		};
+
+		struct Boolean : public Literal
+		{
+			bool value;
+
+			Boolean(bool v)
+			: value(v)
+			{}
+
+			virtual const char* class_name() const { return "Boolean"; }
+			virtual void dump(int i = 0) const {
+				priv::print(i, "{}({})\n", class_name(), value);
+			}
+		};
+
 		struct Glyph : public Literal
 		{
 			uint32_t value;

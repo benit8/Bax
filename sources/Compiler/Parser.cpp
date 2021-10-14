@@ -31,6 +31,7 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 	{ Token::Type::EqualsEquals,             { Precedence::Equality,   nullptr,             &Parser::binary } },
 	{ Token::Type::Exclamation,              { Precedence::Unary,      &Parser::unary,      nullptr         } },
 	{ Token::Type::ExclamationEquals,        { Precedence::Equality,   nullptr,             &Parser::binary } },
+	{ Token::Type::False,                    { Precedence::Lowest,     &Parser::literal,    nullptr         } },
 	{ Token::Type::Glyph,                    { Precedence::Lowest,     &Parser::glyph,      nullptr         } },
 	{ Token::Type::Greater,                  { Precedence::Comparison, nullptr,             &Parser::binary } },
 	{ Token::Type::GreaterEquals,            { Precedence::Comparison, nullptr,             &Parser::binary } },
@@ -47,6 +48,7 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 	{ Token::Type::Minus,                    { Precedence::Term,       &Parser::unary,      &Parser::binary } },
 	{ Token::Type::MinusEquals,              { Precedence::Assign,     nullptr,             &Parser::assign } },
 	{ Token::Type::MinusMinus,               { Precedence::Unary,      &Parser::unary,      nullptr         } },
+	{ Token::Type::Null,                     { Precedence::Lowest,     &Parser::literal,    nullptr         } },
 	{ Token::Type::Number,                   { Precedence::Lowest,     &Parser::number,     nullptr         } },
 	{ Token::Type::Percent,                  { Precedence::Factor,     nullptr,             &Parser::binary } },
 	{ Token::Type::PercentEquals,            { Precedence::Assign,     nullptr,             &Parser::assign } },
@@ -65,6 +67,7 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 	{ Token::Type::SlashEquals,              { Precedence::Assign,     nullptr,             &Parser::assign } },
 	{ Token::Type::String,                   { Precedence::Lowest,     &Parser::string,     nullptr         } },
 	{ Token::Type::Tilde,                    { Precedence::Unary,      &Parser::unary,      nullptr         } },
+	{ Token::Type::True,                     { Precedence::Lowest,     &Parser::literal,    nullptr         } },
 };
 
 // -----------------------------------------------------------------------------
@@ -177,6 +180,18 @@ Ptr<AST::Expression> Parser::group(const Token&)
 Ptr<AST::Expression> Parser::identifier(const Token& token)
 {
 	return makeNode<AST::Identifier>(std::string(token.trivia.data(), token.trivia.length()));
+}
+
+Ptr<AST::Expression> Parser::literal(const Token& token)
+{
+	switch (token.type) {
+		case Token::Type::False: return makeNode<AST::Boolean>(false);
+		case Token::Type::Null:  return makeNode<AST::Null>();
+		case Token::Type::True:  return makeNode<AST::Boolean>(true);
+		default:
+			break;
+	}
+	ASSERT_NOT_REACHED();
 }
 
 Ptr<AST::Expression> Parser::number(const Token& token)
