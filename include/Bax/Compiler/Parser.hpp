@@ -22,18 +22,23 @@ class Parser
 public:
 	enum class Precedence {
 		Lowest,
-		Assign,        // = += -= *= **= /= |= &= ^= >>= <<= ??=
-		Ternary,       // ?
-		Or,            // ||
-		And,           // &&
-		Equality,      // == !=
-		Comparison,    // < <= > >=
-		Coalesce,      // ?? ?:
-		Term,          // + - | ^
-		Factor,        // * ** / % &
-		Shift,         // << >>
-		Unary,         // + - ! ~
-		Property,      // . ?. ( [
+		Assigns,     // = += -= *= **= /= |= &= ^= <<= >>= ??=
+		Ternary,     // ?
+		Coalesce,    // ?? ?:
+		BooleanOr,   // ||
+		BooleanAnd,  // &&
+		BitwiseOr,   // |
+		BitwiseXor,  // ^
+		BitwiseAnd,  // &
+		Equalities,  // == !=
+		Comparisons, // < <= > >=
+		Shifts,      // << >>
+		Terms,       // + -
+		Factors,     // * / %
+		Power,       // **
+		Unaries,     // ! + - ~
+		Increments,  // ++ --
+		Properties,  // . ?. ( [
 	};
 
 	struct GrammarRule {
