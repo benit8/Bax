@@ -16,58 +16,59 @@ namespace Bax
 {
 
 const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules = {
-	{ Token::Type::Ampersand,                { Precedence::BitwiseAnd,  nullptr,             &Parser::binary } },
-	{ Token::Type::AmpersandAmpersand,       { Precedence::BooleanAnd,  nullptr,             &Parser::binary } },
-	{ Token::Type::AmpersandAmpersandEquals, { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::AmpersandEquals,          { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::Asterisk,                 { Precedence::Factors,     nullptr,             &Parser::binary } },
-	{ Token::Type::AsteriskAsterisk,         { Precedence::Power,       nullptr,             &Parser::binary } },
-	{ Token::Type::AsteriskAsteriskEquals,   { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::AsteriskEquals,           { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::Caret,                    { Precedence::BitwiseXor,  nullptr,             &Parser::binary } },
-	{ Token::Type::CaretEquals,              { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::Dot,                      { Precedence::Properties,  nullptr,             &Parser::binary } },
-	{ Token::Type::Equals,                   { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::EqualsEquals,             { Precedence::Equalities,  nullptr,             &Parser::binary } },
-	{ Token::Type::Exclamation,              { Precedence::Unaries,     &Parser::unary,      nullptr         } },
-	{ Token::Type::ExclamationEquals,        { Precedence::Equalities,  nullptr,             &Parser::binary } },
-	{ Token::Type::False,                    { Precedence::Lowest,      &Parser::literal,    nullptr         } },
-	{ Token::Type::Glyph,                    { Precedence::Lowest,      &Parser::glyph,      nullptr         } },
-	{ Token::Type::Greater,                  { Precedence::Comparisons, nullptr,             &Parser::binary } },
-	{ Token::Type::GreaterEquals,            { Precedence::Comparisons, nullptr,             &Parser::binary } },
-	{ Token::Type::GreaterGreater,           { Precedence::Shifts,      nullptr,             &Parser::binary } },
-	{ Token::Type::GreaterGreaterEquals,     { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::Identifier,               { Precedence::Lowest,      &Parser::identifier, nullptr         } },
-	{ Token::Type::LeftBrace,                { Precedence::Properties,  &Parser::object,     nullptr         } },
-	{ Token::Type::LeftBracket,              { Precedence::Properties,  &Parser::array,      &Parser::index  } },
-	{ Token::Type::LeftParenthesis,          { Precedence::Properties,  &Parser::group,      &Parser::call   } },
-	{ Token::Type::Less,                     { Precedence::Comparisons, nullptr,             &Parser::binary } },
-	{ Token::Type::LessEquals,               { Precedence::Comparisons, nullptr,             &Parser::binary } },
-	{ Token::Type::LessLess,                 { Precedence::Shifts,      nullptr,             &Parser::binary } },
-	{ Token::Type::LessLessEquals,           { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::Minus,                    { Precedence::Terms,       &Parser::unary,      &Parser::binary } },
-	{ Token::Type::MinusEquals,              { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::MinusMinus,               { Precedence::Increments,  &Parser::unary,      nullptr         } },
-	{ Token::Type::Null,                     { Precedence::Lowest,      &Parser::literal,    nullptr         } },
-	{ Token::Type::Number,                   { Precedence::Lowest,      &Parser::number,     nullptr         } },
-	{ Token::Type::Percent,                  { Precedence::Factors,     nullptr,             &Parser::binary } },
-	{ Token::Type::PercentEquals,            { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::Pipe,                     { Precedence::BitwiseOr,   nullptr,             &Parser::binary } },
-	{ Token::Type::PipeEquals,               { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::PipePipe,                 { Precedence::BooleanOr,   nullptr,             &Parser::binary } },
-	{ Token::Type::PipePipeEquals,           { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::Plus,                     { Precedence::Terms,       &Parser::unary,      &Parser::binary } },
-	{ Token::Type::PlusEquals,               { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::PlusPlus,                 { Precedence::Increments,  &Parser::unary,      nullptr         } },
-	{ Token::Type::QuestionColon,            { Precedence::Coalesce,    nullptr,             &Parser::binary } },
-	{ Token::Type::QuestionDot,              { Precedence::Properties,  nullptr,             &Parser::binary } },
-	{ Token::Type::QuestionQuestion,         { Precedence::Coalesce,    nullptr,             &Parser::binary } },
-	{ Token::Type::QuestionQuestionEquals,   { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::Slash,                    { Precedence::Factors,     nullptr,             &Parser::binary } },
-	{ Token::Type::SlashEquals,              { Precedence::Assigns,     nullptr,             &Parser::assign } },
-	{ Token::Type::String,                   { Precedence::Lowest,      &Parser::string,     nullptr         } },
-	{ Token::Type::Tilde,                    { Precedence::Unaries,     &Parser::unary,      nullptr         } },
-	{ Token::Type::True,                     { Precedence::Lowest,      &Parser::literal,    nullptr         } },
+	{ Token::Type::Ampersand,                { Precedence::BitwiseAnd,  nullptr,             &Parser::binary  } },
+	{ Token::Type::AmpersandAmpersand,       { Precedence::BooleanAnd,  nullptr,             &Parser::binary  } },
+	{ Token::Type::AmpersandAmpersandEquals, { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::AmpersandEquals,          { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::Asterisk,                 { Precedence::Factors,     nullptr,             &Parser::binary  } },
+	{ Token::Type::AsteriskAsterisk,         { Precedence::Power,       nullptr,             &Parser::binary  } },
+	{ Token::Type::AsteriskAsteriskEquals,   { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::AsteriskEquals,           { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::Caret,                    { Precedence::BitwiseXor,  nullptr,             &Parser::binary  } },
+	{ Token::Type::CaretEquals,              { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::Dot,                      { Precedence::Properties,  nullptr,             &Parser::binary  } },
+	{ Token::Type::Equals,                   { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::EqualsEquals,             { Precedence::Equalities,  nullptr,             &Parser::binary  } },
+	{ Token::Type::Exclamation,              { Precedence::Unaries,     &Parser::unary,      nullptr          } },
+	{ Token::Type::ExclamationEquals,        { Precedence::Equalities,  nullptr,             &Parser::binary  } },
+	{ Token::Type::False,                    { Precedence::Lowest,      &Parser::literal,    nullptr          } },
+	{ Token::Type::Glyph,                    { Precedence::Lowest,      &Parser::glyph,      nullptr          } },
+	{ Token::Type::Greater,                  { Precedence::Comparisons, nullptr,             &Parser::binary  } },
+	{ Token::Type::GreaterEquals,            { Precedence::Comparisons, nullptr,             &Parser::binary  } },
+	{ Token::Type::GreaterGreater,           { Precedence::Shifts,      nullptr,             &Parser::binary  } },
+	{ Token::Type::GreaterGreaterEquals,     { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::Identifier,               { Precedence::Lowest,      &Parser::identifier, nullptr          } },
+	{ Token::Type::LeftBrace,                { Precedence::Properties,  &Parser::object,     nullptr          } },
+	{ Token::Type::LeftBracket,              { Precedence::Properties,  &Parser::array,      &Parser::index   } },
+	{ Token::Type::LeftParenthesis,          { Precedence::Properties,  &Parser::group,      &Parser::call    } },
+	{ Token::Type::Less,                     { Precedence::Comparisons, nullptr,             &Parser::binary  } },
+	{ Token::Type::LessEquals,               { Precedence::Comparisons, nullptr,             &Parser::binary  } },
+	{ Token::Type::LessLess,                 { Precedence::Shifts,      nullptr,             &Parser::binary  } },
+	{ Token::Type::LessLessEquals,           { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::Minus,                    { Precedence::Terms,       &Parser::unary,      &Parser::binary  } },
+	{ Token::Type::MinusEquals,              { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::MinusMinus,               { Precedence::Increments,  &Parser::unary,      nullptr          } },
+	{ Token::Type::Null,                     { Precedence::Lowest,      &Parser::literal,    nullptr          } },
+	{ Token::Type::Number,                   { Precedence::Lowest,      &Parser::number,     nullptr          } },
+	{ Token::Type::Percent,                  { Precedence::Factors,     nullptr,             &Parser::binary  } },
+	{ Token::Type::PercentEquals,            { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::Pipe,                     { Precedence::BitwiseOr,   nullptr,             &Parser::binary  } },
+	{ Token::Type::PipeEquals,               { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::PipePipe,                 { Precedence::BooleanOr,   nullptr,             &Parser::binary  } },
+	{ Token::Type::PipePipeEquals,           { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::Plus,                     { Precedence::Terms,       &Parser::unary,      &Parser::binary  } },
+	{ Token::Type::PlusEquals,               { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::PlusPlus,                 { Precedence::Increments,  &Parser::unary,      nullptr          } },
+	{ Token::Type::Question,                 { Precedence::Ternary,     nullptr,             &Parser::ternary } },
+	{ Token::Type::QuestionColon,            { Precedence::Coalesce,    nullptr,             &Parser::binary  } },
+	{ Token::Type::QuestionDot,              { Precedence::Properties,  nullptr,             &Parser::binary  } },
+	{ Token::Type::QuestionQuestion,         { Precedence::Coalesce,    nullptr,             &Parser::binary  } },
+	{ Token::Type::QuestionQuestionEquals,   { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::Slash,                    { Precedence::Factors,     nullptr,             &Parser::binary  } },
+	{ Token::Type::SlashEquals,              { Precedence::Assigns,     nullptr,             &Parser::assign  } },
+	{ Token::Type::String,                   { Precedence::Lowest,      &Parser::string,     nullptr          } },
+	{ Token::Type::Tilde,                    { Precedence::Unaries,     &Parser::unary,      nullptr          } },
+	{ Token::Type::True,                     { Precedence::Lowest,      &Parser::literal,    nullptr          } },
 };
 
 // -----------------------------------------------------------------------------
@@ -362,6 +363,22 @@ Ptr<AST::Expression> Parser::call(const Token&, Ptr<AST::Expression> lhs)
 Ptr<AST::Expression> Parser::index(const Token&, Ptr<AST::Expression> lhs)
 {
 	return nullptr;
+}
+
+Ptr<AST::Expression> Parser::ternary(const Token&, Ptr<AST::Expression> lhs)
+{
+	auto consequent = expression(Precedence::Ternary);
+
+	if (!consume(Token::Type::Colon))
+		return nullptr;
+
+	auto alternate = expression(Precedence::Ternary);
+
+	return makeNode<AST::TernaryExpression>(
+		std::move(lhs),
+		std::move(consequent),
+		std::move(alternate)
+	);
 }
 
 // -----------------------------------------------------------------------------

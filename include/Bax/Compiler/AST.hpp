@@ -264,6 +264,25 @@ namespace Bax
 					arg->dump(i + 1);
 			}
 		};
+
+		struct TernaryExpression : public Expression
+		{
+			Ptr<AST::Expression> condition, consequent, alternate;
+
+			TernaryExpression(Ptr<AST::Expression> cond, Ptr<AST::Expression> cons, Ptr<AST::Expression> alt)
+			: condition(std::move(cond))
+			, consequent(std::move(cons))
+			, alternate(std::move(alt))
+			{}
+
+			virtual const char* class_name() const { return "TernaryExpression"; }
+			virtual void dump(int i = 0) const {
+				Node::dump(i);
+				condition->dump(i + 1);
+				consequent->dump(i + 1);
+				alternate->dump(i + 1);
+			}
+		};
 	}
 }
 
