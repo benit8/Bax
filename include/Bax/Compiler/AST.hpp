@@ -138,6 +138,41 @@ namespace Bax
 			}
 		};
 
+		struct Array : public Expression
+		{
+			std::vector<Ptr<AST::Expression>> elements;
+
+			Array(std::vector<Ptr<AST::Expression>> els)
+			: elements(std::move(els))
+			{}
+
+			virtual const char* class_name() const { return "Array"; }
+			virtual void dump(int i = 0) const {
+				Node::dump(i);
+				for (auto &el : elements)
+					el->dump(i + 1);
+			}
+		};
+
+		struct Call : public Expression
+		{
+			Ptr<AST::Expression> lhs;
+			std::vector<Ptr<AST::Expression>> arguments;
+
+			Call(Ptr<AST::Expression> l, std::vector<Ptr<AST::Expression>> args)
+			: lhs(std::move(l))
+			, arguments(std::move(args))
+			{}
+
+			virtual const char* class_name() const { return "Call"; }
+			virtual void dump(int i = 0) const {
+				Node::dump(i);
+				lhs->dump(i + 1);
+				for (auto &arg : arguments)
+					arg->dump(i + 1);
+			}
+		};
+
 		struct UnaryExpression : public Expression
 		{
 			enum class Operators {
@@ -163,7 +198,7 @@ namespace Bax
 			}
 		};
 
-		struct AssignExpression : public Expression
+		struct Assignment : public Expression
 		{
 			enum class Operators {
 				Add,
@@ -183,16 +218,15 @@ namespace Bax
 				Substract,
 			} op;
 
-			Ptr<AST::Expression> lhs;
-			Ptr<AST::Expression> rhs;
+			Ptr<AST::Expression> lhs, rhs;
 
-			AssignExpression(Operators o, Ptr<AST::Expression> l, Ptr<AST::Expression> r)
+			Assignment(Operators o, Ptr<AST::Expression> l, Ptr<AST::Expression> r)
 			: op(o)
 			, lhs(std::move(l))
 			, rhs(std::move(r))
 			{}
 
-			virtual const char* class_name() const { return "AssignExpression"; }
+			virtual const char* class_name() const { return "Assignment"; }
 			virtual void dump(int i = 0) const {
 				priv::print(i, "{}({})\n", class_name(), (int)op);
 				lhs->dump(i + 1);
@@ -229,8 +263,7 @@ namespace Bax
 				Ternary,
 			} op;
 
-			Ptr<AST::Expression> lhs;
-			Ptr<AST::Expression> rhs;
+			Ptr<AST::Expression> lhs, rhs;
 
 			BinaryExpression(Operators o, Ptr<AST::Expression> l, Ptr<AST::Expression> r)
 			: op(o)
@@ -243,25 +276,6 @@ namespace Bax
 				priv::print(i, "{}({})\n", class_name(), (int)op);
 				lhs->dump(i + 1);
 				rhs->dump(i + 1);
-			}
-		};
-
-		struct CallExpression : public Expression
-		{
-			Ptr<AST::Expression> lhs;
-			std::vector<Ptr<AST::Expression>> arguments;
-
-			CallExpression(Ptr<AST::Expression> l, std::vector<Ptr<AST::Expression>> args)
-			: lhs(std::move(l))
-			, arguments(std::move(args))
-			{}
-
-			virtual const char* class_name() const { return "CallExpression"; }
-			virtual void dump(int i = 0) const {
-				Node::dump(i);
-				lhs->dump(i + 1);
-				for (auto &arg : arguments)
-					arg->dump(i + 1);
 			}
 		};
 

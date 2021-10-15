@@ -156,7 +156,22 @@ Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
 
 Ptr<AST::Expression> Parser::array(const Token&)
 {
-	return nullptr;
+	std::vector<Ptr<AST::Expression>> elements;
+
+	while (!peek(Token::Type::RightBracket)) {
+		auto expr = expression();
+		if (!expr)
+			return nullptr;
+		elements.push_back(std::move(expr));
+
+		if (!peek(Token::Type::Comma))
+			break;
+		consume(Token::Type::Comma);
+	}
+
+	return consume(Token::Type::RightBracket)
+		? makeNode<AST::Array>(std::move(elements))
+		: nullptr;
 }
 
 Ptr<AST::Expression> Parser::glyph(const Token& token)
@@ -290,29 +305,29 @@ Ptr<AST::Expression> Parser::unary(const Token& token)
 
 Ptr<AST::Expression> Parser::assign(const Token& token, Ptr<AST::Expression> lhs)
 {
-	static const std::unordered_map<Token::Type, AST::AssignExpression::Operators> assign_operators = {
-		{ Token::Type::AmpersandAmpersandEquals, AST::AssignExpression::Operators::BooleanAnd        },
-		{ Token::Type::AmpersandEquals,          AST::AssignExpression::Operators::BitwiseAnd        },
-		{ Token::Type::AsteriskAsteriskEquals,   AST::AssignExpression::Operators::Power             },
-		{ Token::Type::AsteriskEquals,           AST::AssignExpression::Operators::Multiply          },
-		{ Token::Type::CaretEquals,              AST::AssignExpression::Operators::BitwiseXor        },
-		{ Token::Type::Equals,                   AST::AssignExpression::Operators::Assign            },
-		{ Token::Type::GreaterGreaterEquals,     AST::AssignExpression::Operators::BitwiseLeftShift  },
-		{ Token::Type::LessLessEquals,           AST::AssignExpression::Operators::BitwiseRightShift },
-		{ Token::Type::MinusEquals,              AST::AssignExpression::Operators::Substract         },
-		{ Token::Type::PercentEquals,            AST::AssignExpression::Operators::Modulo            },
-		{ Token::Type::PipeEquals,               AST::AssignExpression::Operators::BitwiseOr         },
-		{ Token::Type::PipePipeEquals,           AST::AssignExpression::Operators::BooleanOr         },
-		{ Token::Type::PlusEquals,               AST::AssignExpression::Operators::Add               },
-		{ Token::Type::QuestionQuestionEquals,   AST::AssignExpression::Operators::Coalesce          },
-		{ Token::Type::SlashEquals,              AST::AssignExpression::Operators::Divide            },
+	static const std::unordered_map<Token::Type, AST::Assignment::Operators> assign_operators = {
+		{ Token::Type::AmpersandAmpersandEquals, AST::Assignment::Operators::BooleanAnd        },
+		{ Token::Type::AmpersandEquals,          AST::Assignment::Operators::BitwiseAnd        },
+		{ Token::Type::AsteriskAsteriskEquals,   AST::Assignment::Operators::Power             },
+		{ Token::Type::AsteriskEquals,           AST::Assignment::Operators::Multiply          },
+		{ Token::Type::CaretEquals,              AST::Assignment::Operators::BitwiseXor        },
+		{ Token::Type::Equals,                   AST::Assignment::Operators::Assign            },
+		{ Token::Type::GreaterGreaterEquals,     AST::Assignment::Operators::BitwiseLeftShift  },
+		{ Token::Type::LessLessEquals,           AST::Assignment::Operators::BitwiseRightShift },
+		{ Token::Type::MinusEquals,              AST::Assignment::Operators::Substract         },
+		{ Token::Type::PercentEquals,            AST::Assignment::Operators::Modulo            },
+		{ Token::Type::PipeEquals,               AST::Assignment::Operators::BitwiseOr         },
+		{ Token::Type::PipePipeEquals,           AST::Assignment::Operators::BooleanOr         },
+		{ Token::Type::PlusEquals,               AST::Assignment::Operators::Add               },
+		{ Token::Type::QuestionQuestionEquals,   AST::Assignment::Operators::Coalesce          },
+		{ Token::Type::SlashEquals,              AST::Assignment::Operators::Divide            },
 	};
 
 	auto rhs = expression(Precedence::Assigns);
 	if (!rhs)
 		return nullptr;
 
-	return makeNode<AST::AssignExpression>(
+	return makeNode<AST::Assignment>(
 		assign_operators.at(token.type),
 		std::move(lhs),
 		std::move(rhs)
@@ -372,7 +387,7 @@ Ptr<AST::Expression> Parser::call(const Token&, Ptr<AST::Expression> lhs)
 	}
 	ASSERT(consume(Token::Type::RightParenthesis));
 
-	return makeNode<AST::CallExpression>(std::move(lhs), std::move(arguments));
+	return makeNode<AST::Call>(std::move(lhs), std::move(arguments));
 }
 
 Ptr<AST::Expression> Parser::index(const Token&, Ptr<AST::Expression> lhs)
