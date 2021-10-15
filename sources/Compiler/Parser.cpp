@@ -117,7 +117,7 @@ Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
 {
 	auto token = consume();
 	if (token.type == Token::Type::Eof) {
-		Log::notice("Reached end of file");
+		Log::error("Unexpected end of file, expected expression");
 		return nullptr;
 	}
 
@@ -277,9 +277,14 @@ Ptr<AST::Expression> Parser::unary(const Token& token)
 		{ Token::Type::MinusMinus,  AST::UnaryExpression::Operators::Decrement  },
 		{ Token::Type::Tilde,       AST::UnaryExpression::Operators::BitwiseNot },
 	};
+
+	auto rhs = expression(Precedence::Unaries);
+	if (!rhs)
+		return nullptr;
+
 	return makeNode<AST::UnaryExpression>(
 		unary_operators.at(token.type),
-		expression(Precedence::Unaries)
+		std::move(rhs)
 	);
 }
 
@@ -302,10 +307,15 @@ Ptr<AST::Expression> Parser::assign(const Token& token, Ptr<AST::Expression> lhs
 		{ Token::Type::QuestionQuestionEquals,   AST::AssignExpression::Operators::Coalesce          },
 		{ Token::Type::SlashEquals,              AST::AssignExpression::Operators::Divide            },
 	};
+
+	auto rhs = expression(Precedence::Assigns);
+	if (!rhs)
+		return nullptr;
+
 	return makeNode<AST::AssignExpression>(
 		assign_operators.at(token.type),
 		std::move(lhs),
-		expression(Precedence::Assigns)
+		std::move(rhs)
 	);
 }
 
@@ -336,10 +346,15 @@ Ptr<AST::Expression> Parser::binary(const Token& token, Ptr<AST::Expression> lhs
 		{ Token::Type::QuestionQuestion,   AST::BinaryExpression::Operators::Coalesce            },
 		{ Token::Type::Slash,              AST::BinaryExpression::Operators::Divide              },
 	};
+
+	auto rhs = expression(grammar_rules.at(token.type).precedence);
+	if (!rhs)
+		return nullptr;
+
 	return makeNode<AST::BinaryExpression>(
 		binary_operators.at(token.type),
 		std::move(lhs),
-		expression(grammar_rules.at(token.type).precedence)
+		std::move(rhs)
 	);
 }
 
@@ -368,11 +383,15 @@ Ptr<AST::Expression> Parser::index(const Token&, Ptr<AST::Expression> lhs)
 Ptr<AST::Expression> Parser::ternary(const Token&, Ptr<AST::Expression> lhs)
 {
 	auto consequent = expression(Precedence::Ternary);
+	if (!consequent)
+		return nullptr;
 
 	if (!consume(Token::Type::Colon))
 		return nullptr;
 
 	auto alternate = expression(Precedence::Ternary);
+	if (!alternate)
+		return nullptr;
 
 	return makeNode<AST::TernaryExpression>(
 		std::move(lhs),
