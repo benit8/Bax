@@ -73,8 +73,8 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 
 // -----------------------------------------------------------------------------
 
-Parser::Parser(const std::string_view& source)
-: m_lexer(source)
+Parser::Parser(Lexer lexer)
+: m_lexer(std::move(lexer))
 , m_current_token(m_lexer.next())
 {}
 

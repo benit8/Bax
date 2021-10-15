@@ -54,7 +54,7 @@ private:
 	Token m_current_token;
 
 public:
-	Parser(const std::string_view& source);
+	Parser(Lexer lexer);
 	~Parser();
 
 	Ptr<AST::Node> run();
