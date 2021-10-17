@@ -17,14 +17,14 @@
 namespace Bax
 {
 	template <typename T>
-	using Ptr = std::unique_ptr<T>;
+	using Own = std::unique_ptr<T>;
 
 	template <typename T>
-	using Ref = std::shared_ptr<T>;
+	using Ptr = std::shared_ptr<T>;
 
 	template <typename T, typename... Args>
 	Ptr<T> makeNode(Args&&... args) {
-		return std::make_unique<T>(std::forward<Args>(args)...);
+		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
 
 	namespace AST

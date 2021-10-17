@@ -10,6 +10,7 @@
 
 #include "Bax/Compiler/AST.hpp"
 #include "Bax/Compiler/Lexer.hpp"
+#include <functional>
 #include <string_view>
 
 // -----------------------------------------------------------------------------
@@ -43,8 +44,8 @@ public:
 
 	struct GrammarRule {
 		Precedence precedence;
-		Ptr<AST::Expression> (Parser::*prefix)(const Token&);
-		Ptr<AST::Expression> (Parser::*infix)(const Token&, Ptr<AST::Expression>);
+		std::function<Ptr<AST::Expression>(Parser*, const Token&)> prefix;
+		std::function<Ptr<AST::Expression>(Parser*, const Token&, Ptr<AST::Expression>)> infix;
 	};
 
 private:
@@ -67,20 +68,20 @@ private:
 
 	Ptr<AST::Expression> expression(Precedence = Precedence::Lowest);
 
-	Ptr<AST::Expression> array(const Token&);
-	Ptr<AST::Expression> glyph(const Token&);
+	Ptr<AST::Array> array(const Token&);
+	Ptr<AST::Glyph> glyph(const Token&);
 	Ptr<AST::Expression> group(const Token&);
-	Ptr<AST::Expression> identifier(const Token&);
-	Ptr<AST::Expression> literal(const Token&);
-	Ptr<AST::Expression> number(const Token&);
-	Ptr<AST::Expression> object(const Token&);
-	Ptr<AST::Expression> string(const Token&);
-	Ptr<AST::Expression> unary(const Token&);
-	Ptr<AST::Expression> assign(const Token&, Ptr<AST::Expression>);
-	Ptr<AST::Expression> binary(const Token&, Ptr<AST::Expression>);
-	Ptr<AST::Expression> call(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::Identifier> identifier(const Token&);
+	Ptr<AST::Literal> literal(const Token&);
+	Ptr<AST::Number> number(const Token&);
+	Ptr<AST::Object> object(const Token&);
+	Ptr<AST::String> string(const Token&);
+	Ptr<AST::UnaryExpression> unary(const Token&);
+	Ptr<AST::Assignment> assign(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::BinaryExpression> binary(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::Call> call(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::Expression> index(const Token&, Ptr<AST::Expression>);
-	Ptr<AST::Expression> ternary(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::TernaryExpression> ternary(const Token&, Ptr<AST::Expression>);
 
 	uint32_t parse_escape_sequence(std::string_view::const_iterator&);
 };
