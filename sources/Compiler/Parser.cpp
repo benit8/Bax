@@ -13,6 +13,7 @@
 // -----------------------------------------------------------------------------
 
 #define MUST_CONSUME(TT) if (!must_consume(TT)) return nullptr;
+#define CONTAINS(ARR, VAL) (std::find((ARR).begin(), (ARR).end(), (VAL)) != (ARR).end())
 
 // -----------------------------------------------------------------------------
 
@@ -81,6 +82,21 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 #undef PREFIX
 #undef INFIX
 
+const std::array<Token::Type, 3> Parser::declaration_tokens = {
+	Token::Type::Class,
+	Token::Type::Const,
+	Token::Type::Let,
+};
+
+const std::array<Token::Type, 6> Parser::statement_tokens = {
+	Token::Type::For,
+	Token::Type::Identifier,
+	Token::Type::If,
+	Token::Type::LeftBrace,
+	Token::Type::Return,
+	Token::Type::While,
+};
+
 // -----------------------------------------------------------------------------
 
 Parser::Parser(Lexer lexer)
@@ -130,10 +146,33 @@ bool Parser::must_consume(Token::Type type)
 Ptr<AST::Node> Parser::run()
 {
 	// for (Token t = consume(); t.type != Token::Type::Eof; t = consume()) Log::debug("{}", t);
-	return expression();
+	return statement();
 }
 
 // -----------------------------------------------------------------------------
+
+Ptr<AST::Declaration> Parser::declaration()
+{
+	switch (m_current_token.type) {
+		// case Token::Type::Class: return class_declaration();
+		default:
+			Log::error("Unexpected token {}, expected declaration", m_current_token);
+			return nullptr;
+	}
+}
+
+Ptr<AST::Statement> Parser::statement()
+{
+	switch (m_current_token.type) {
+		case Token::Type::Identifier: return expression_statement();
+		case Token::Type::If:         return if_statement();
+		case Token::Type::LeftBrace:  return block_statement();
+		default:
+			Log::error("Unexpected token {}, expected statement", m_current_token);
+			break;
+	}
+	return nullptr;
+}
 
 Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
 {
@@ -470,6 +509,82 @@ Ptr<AST::UnaryExpression> Parser::unary(const Token& token)
 	return makeNode<AST::UnaryExpression>(
 		unary_operators.at(token.type),
 		std::move(rhs)
+	);
+}
+
+// -----------------------------------------------------------------------------
+
+Ptr<AST::BlockStatement> Parser::block_statement()
+{
+	std::vector<Ptr<AST::Statement>> statements;
+
+	MUST_CONSUME(Token::Type::LeftBrace);
+
+	while (!peek(Token::Type::Eof) && !peek(Token::Type::RightBrace)) {
+		if (CONTAINS(declaration_tokens, m_current_token.type)) {
+			auto decl = declaration();
+			if (!decl) return nullptr;
+			statements.push_back(std::move(decl));
+		}
+		else if (CONTAINS(statement_tokens, m_current_token.type)) {
+			auto stmt = statement();
+			if (!stmt) return nullptr;
+			statements.push_back(std::move(stmt));
+		}
+		else {
+			Log::error("Unexpected token {}, expected statement or declaration", m_current_token);
+			return nullptr;
+		}
+	}
+
+	MUST_CONSUME(Token::Type::RightBrace);
+
+	return makeNode<AST::BlockStatement>(std::move(statements));
+}
+
+Ptr<AST::ExpressionStatement> Parser::expression_statement()
+{
+	auto expr = expression();
+	if (!expr) return nullptr;
+
+	MUST_CONSUME(Token::Type::Semicolon);
+
+	/// FIXME: Check against actual types, not strings
+	static const std::array<std::string, 2> allowed_expressions = {
+		"AssignmentExpression",
+		"CallExpression",
+	};
+	if (!CONTAINS(allowed_expressions, expr->class_name())) {
+		Log::error("Expression of type {} is not allowed as a statement", expr->class_name());
+		return nullptr;
+	}
+
+	return makeNode<AST::ExpressionStatement>(std::move(expr));
+}
+
+Ptr<AST::IfStatement> Parser::if_statement()
+{
+	MUST_CONSUME(Token::Type::If);
+	MUST_CONSUME(Token::Type::LeftParenthesis);
+
+	auto condition = expression();
+	if (!condition) return nullptr;
+
+	MUST_CONSUME(Token::Type::RightParenthesis);
+
+	auto consequent = statement();
+	if (!consequent) return nullptr;
+
+	Ptr<AST::Statement> alternate = nullptr;
+	if (consume(Token::Type::Else)) {
+		alternate = statement();
+		if (!alternate) return nullptr;
+	}
+
+	return makeNode<AST::IfStatement>(
+		std::move(condition),
+		std::move(consequent),
+		std::move(alternate)
 	);
 }
 

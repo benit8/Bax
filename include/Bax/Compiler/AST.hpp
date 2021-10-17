@@ -343,6 +343,65 @@ namespace Bax
 		{
 			virtual const char* class_name() const { return "Statement"; }
 		};
+
+		struct BlockStatement final : public Statement
+		{
+			std::vector<Ptr<Statement>> statements;
+
+			BlockStatement(std::vector<Ptr<Statement>> s)
+			: statements(std::move(s))
+			{}
+
+			const char* class_name() const { return "BlockStatement"; }
+			void dump(int i = 0) const {
+				Node::dump(i);
+				for (auto &stmt : statements)
+					stmt->dump(i + 1);
+			}
+		};
+
+		struct ExpressionStatement final : public Statement
+		{
+			Ptr<Expression> expression;
+
+			ExpressionStatement(Ptr<Expression> expr)
+			: expression(std::move(expr))
+			{}
+
+			const char* class_name() const { return "ExpressionStatement"; }
+			void dump(int i = 0) const {
+				Node::dump(i);
+				expression->dump(i + 1);
+			}
+		};
+
+		struct IfStatement final : public Statement
+		{
+			Ptr<Expression> condition;
+			Ptr<Statement> consequent, alternate;
+
+			IfStatement(Ptr<Expression> cond, Ptr<Statement> cons, Ptr<Statement> alt = nullptr)
+			: condition(std::move(cond))
+			, consequent(std::move(cons))
+			, alternate(std::move(alt))
+			{}
+
+			const char* class_name() const { return "IfStatement"; }
+			void dump(int i = 0) const {
+				Node::dump(i);
+				condition->dump(i + 1);
+				consequent->dump(i + 1);
+				if (alternate)
+					alternate->dump(i + 1);
+			}
+		};
+
+		/// 2. A. Declarations -------------------------------------------------
+
+		struct Declaration : public Statement
+		{
+			virtual const char* class_name() const { return "Declaration"; }
+		};
 	}
 }
 

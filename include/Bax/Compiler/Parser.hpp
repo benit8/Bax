@@ -10,8 +10,10 @@
 
 #include "Bax/Compiler/AST.hpp"
 #include "Bax/Compiler/Lexer.hpp"
+#include <array>
 #include <functional>
 #include <string_view>
+#include <vector>
 
 // -----------------------------------------------------------------------------
 
@@ -50,6 +52,8 @@ public:
 
 private:
 	static const std::unordered_map<Token::Type, GrammarRule> grammar_rules;
+	static const std::array<Token::Type, 3> declaration_tokens;
+	static const std::array<Token::Type, 6> statement_tokens;
 
 	Lexer m_lexer;
 	Token m_current_token;
@@ -67,6 +71,8 @@ private:
 	bool consume(Token::Type);
 	bool must_consume(Token::Type);
 
+	Ptr<AST::Declaration> declaration();
+	Ptr<AST::Statement> statement();
 	Ptr<AST::Expression> expression(Precedence = Precedence::Lowest);
 
 	Ptr<AST::Null> null(const Token&);
@@ -85,6 +91,10 @@ private:
 	Ptr<AST::SubscriptExpression> subscript(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::TernaryExpression> ternary(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::UnaryExpression> unary(const Token&);
+
+	Ptr<AST::BlockStatement> block_statement();
+	Ptr<AST::ExpressionStatement> expression_statement();
+	Ptr<AST::IfStatement> if_statement();
 
 	uint32_t parse_escape_sequence(std::string_view::const_iterator&);
 };
