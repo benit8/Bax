@@ -9,6 +9,7 @@
 // -----------------------------------------------------------------------------
 
 #include "fmt/format.h"
+#include <map>
 #include <memory>
 #include <string>
 
@@ -56,6 +57,20 @@ namespace Bax
 		struct Expression : public Node
 		{
 			virtual const char* class_name() const { return "Expression"; }
+		};
+
+		struct Identifier : public Expression
+		{
+			std::string name;
+
+			Identifier(std::string n)
+			: name(std::move(n))
+			{}
+
+			virtual const char* class_name() const { return "Identifier"; }
+			virtual void dump(int i = 0) const {
+				priv::print(i, "{}({})\n", class_name(), name);
+			}
 		};
 
 		struct Literal : public Expression
@@ -124,20 +139,6 @@ namespace Bax
 			}
 		};
 
-		struct Identifier : public Expression
-		{
-			std::string name;
-
-			Identifier(std::string n)
-			: name(std::move(n))
-			{}
-
-			virtual const char* class_name() const { return "Identifier"; }
-			virtual void dump(int i = 0) const {
-				priv::print(i, "{}({})\n", class_name(), name);
-			}
-		};
-
 		struct Array : public Expression
 		{
 			std::vector<Ptr<AST::Expression>> elements;
@@ -151,6 +152,24 @@ namespace Bax
 				Node::dump(i);
 				for (auto &el : elements)
 					el->dump(i + 1);
+			}
+		};
+
+		struct Object : public Expression
+		{
+			std::map<Ptr<AST::Identifier>, Ptr<AST::Expression>> members;
+
+			Object(std::map<Ptr<AST::Identifier>, Ptr<AST::Expression>> mems)
+			: members(std::move(mems))
+			{}
+
+			virtual const char* class_name() const { return "Object"; }
+			virtual void dump(int i = 0) const {
+				Node::dump(i);
+				for (auto &mem : members) {
+					mem.first->dump(i + 1);
+					mem.second->dump(i + 2);
+				}
 			}
 		};
 

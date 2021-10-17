@@ -164,8 +164,8 @@ Ptr<AST::Array> Parser::array(const Token&)
 
 	while (!peek(Token::Type::RightBracket)) {
 		auto expr = expression();
-		if (!expr)
-			return nullptr;
+		if (!expr) return nullptr;
+
 		elements.push_back(std::move(expr));
 
 		if (!peek(Token::Type::Comma))
@@ -272,7 +272,34 @@ Ptr<AST::Number> Parser::number(const Token& token)
 
 Ptr<AST::Object> Parser::object(const Token&)
 {
-	return nullptr;
+	std::map<Ptr<AST::Identifier>, Ptr<AST::Expression>> members;
+
+	while (!peek(Token::Type::RightBrace)) {
+		auto id_token = consume();
+		if (id_token.type != Token::Type::Identifier) {
+			Log::error("Unexpected token {}, expected indentifier", id_token);
+			return nullptr;
+		}
+
+		auto id = identifier(id_token);
+		if (!id) return nullptr;
+
+		if (!consume(Token::Type::Colon))
+			return nullptr;
+
+		auto expr = expression();
+		if (!expr) return nullptr;
+
+		members.emplace(std::move(id), std::move(expr));
+
+		if (!peek(Token::Type::Comma))
+			break;
+		consume(Token::Type::Comma);
+	}
+
+	return consume(Token::Type::RightBrace)
+		? makeNode<AST::Object>(std::move(members))
+		: nullptr;
 }
 
 Ptr<AST::String> Parser::string(const Token& token)
@@ -298,8 +325,7 @@ Ptr<AST::UnaryExpression> Parser::unary(const Token& token)
 	};
 
 	auto rhs = expression(Precedence::Unaries);
-	if (!rhs)
-		return nullptr;
+	if (!rhs) return nullptr;
 
 	return makeNode<AST::UnaryExpression>(
 		unary_operators.at(token.type),
@@ -328,8 +354,7 @@ Ptr<AST::Assignment> Parser::assign(const Token& token, Ptr<AST::Expression> lhs
 	};
 
 	auto rhs = expression(Precedence::Assigns);
-	if (!rhs)
-		return nullptr;
+	if (!rhs) return nullptr;
 
 	return makeNode<AST::Assignment>(
 		assign_operators.at(token.type),
@@ -367,8 +392,7 @@ Ptr<AST::BinaryExpression> Parser::binary(const Token& token, Ptr<AST::Expressio
 	};
 
 	auto rhs = expression(grammar_rules.at(token.type).precedence);
-	if (!rhs)
-		return nullptr;
+	if (!rhs) return nullptr;
 
 	return makeNode<AST::BinaryExpression>(
 		binary_operators.at(token.type),
@@ -384,9 +408,10 @@ Ptr<AST::Call> Parser::call(const Token&, Ptr<AST::Expression> lhs)
 	while (!peek(Token::Type::RightParenthesis)) {
 		if (!arguments.empty() && !consume(Token::Type::Comma))
 			return nullptr;
+
 		auto arg = expression();
-		if (!arg)
-			return nullptr;
+		if (!arg) return nullptr;
+
 		arguments.push_back(std::move(arg));
 	}
 	ASSERT(consume(Token::Type::RightParenthesis));
@@ -402,15 +427,13 @@ Ptr<AST::Expression> Parser::index(const Token&, Ptr<AST::Expression> lhs)
 Ptr<AST::TernaryExpression> Parser::ternary(const Token&, Ptr<AST::Expression> lhs)
 {
 	auto consequent = expression(Precedence::Ternary);
-	if (!consequent)
-		return nullptr;
+	if (!consequent) return nullptr;
 
 	if (!consume(Token::Type::Colon))
 		return nullptr;
 
 	auto alternate = expression(Precedence::Ternary);
-	if (!alternate)
-		return nullptr;
+	if (!alternate) return nullptr;
 
 	return makeNode<AST::TernaryExpression>(
 		std::move(lhs),
