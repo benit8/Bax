@@ -68,20 +68,22 @@ private:
 
 	Ptr<AST::Expression> expression(Precedence = Precedence::Lowest);
 
-	Ptr<AST::Array> array(const Token&);
+	Ptr<AST::Null> null(const Token&);
+	Ptr<AST::Boolean> boolean(const Token&);
 	Ptr<AST::Glyph> glyph(const Token&);
+	Ptr<AST::Number> number(const Token&);
+	Ptr<AST::String> string(const Token&);
+
 	Ptr<AST::Expression> group(const Token&);
 	Ptr<AST::Identifier> identifier(const Token&);
-	Ptr<AST::Literal> literal(const Token&);
-	Ptr<AST::Number> number(const Token&);
-	Ptr<AST::Object> object(const Token&);
-	Ptr<AST::String> string(const Token&);
-	Ptr<AST::UnaryExpression> unary(const Token&);
-	Ptr<AST::Assignment> assign(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::ArrayExpression> array(const Token&);
+	Ptr<AST::AssignmentExpression> assignment(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::BinaryExpression> binary(const Token&, Ptr<AST::Expression>);
-	Ptr<AST::Call> call(const Token&, Ptr<AST::Expression>);
-	Ptr<AST::Subscript> subscript(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::CallExpression> call(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::ObjectExpression> object(const Token&);
+	Ptr<AST::SubscriptExpression> subscript(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::TernaryExpression> ternary(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::UnaryExpression> unary(const Token&);
 
 	uint32_t parse_escape_sequence(std::string_view::const_iterator&);
 };
