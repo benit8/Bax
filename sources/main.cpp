@@ -31,19 +31,18 @@ int main(int argc, char** argv, char** envp)
 	if (!opt.parse(argc, argv))
 		return EXIT_FAILURE;
 
-	if (run_inline.empty() && entrypoint.empty()) {
-		fmt::print(stderr, "WIP CLI\n");
-		return EXIT_FAILURE;
-	}
-
 	// The VM will run compiled code
 	Bax::VM vm(envp);
 	// The compiler will compile such code
 	Bax::Compiler compiler;
 
-	bool ok = !run_inline.empty()
-		? compiler.do_string(run_inline)
-		: compiler.do_file(entrypoint);
+	bool ok = false;
+	if (!run_inline.empty())
+		ok = compiler.do_string(run_inline);
+	else if (!entrypoint.empty())
+		ok = compiler.do_file(entrypoint);
+	else
+		ok = compiler.do_istream(std::cin);
 
 	if (!ok) {
 		fmt::print(stderr, "Compilation failed\n");
