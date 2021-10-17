@@ -80,7 +80,7 @@ private:
 	Ptr<AST::Assignment> assign(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::BinaryExpression> binary(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::Call> call(const Token&, Ptr<AST::Expression>);
-	Ptr<AST::Expression> index(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::Subscript> subscript(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::TernaryExpression> ternary(const Token&, Ptr<AST::Expression>);
 
 	uint32_t parse_escape_sequence(std::string_view::const_iterator&);

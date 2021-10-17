@@ -298,6 +298,26 @@ namespace Bax
 			}
 		};
 
+		struct Subscript : public Expression
+		{
+			Ptr<AST::Expression> lhs, rhs;
+
+			Subscript(Ptr<AST::Expression> l, Ptr<AST::Expression> r = nullptr)
+			: lhs(l)
+			, rhs(r)
+			{}
+
+			virtual const char* class_name() const { return "Subscript"; }
+			virtual void dump(int i = 0) const {
+				priv::print(i, "{}\n", class_name());
+				lhs->dump(i + 1);
+				if (rhs)
+					rhs->dump(i + 1);
+				else
+					priv::print(i + 1, "(empty subscript)\n");
+			}
+		};
+
 		struct TernaryExpression : public Expression
 		{
 			Ptr<AST::Expression> condition, consequent, alternate;
