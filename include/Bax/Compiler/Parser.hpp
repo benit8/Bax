@@ -65,6 +65,7 @@ private:
 	bool peek(Token::Type) const;
 	Token consume();
 	bool consume(Token::Type);
+	bool must_consume(Token::Type);
 
 	Ptr<AST::Expression> expression(Precedence = Precedence::Lowest);
 

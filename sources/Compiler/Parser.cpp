@@ -12,6 +12,10 @@
 
 // -----------------------------------------------------------------------------
 
+#define MUST_CONSUME(TT) if (!must_consume(TT)) return nullptr;
+
+// -----------------------------------------------------------------------------
+
 namespace Bax
 {
 
@@ -105,6 +109,15 @@ Token Parser::consume()
 }
 
 bool Parser::consume(Token::Type type)
+{
+	if (peek(type)) {
+		consume();
+		return true;
+	}
+	return false;
+}
+
+bool Parser::must_consume(Token::Type type)
 {
 	auto token = consume();
 	if (token.type != type) {
@@ -278,14 +291,12 @@ Ptr<AST::ArrayExpression> Parser::array(const Token&)
 
 		elements.push_back(std::move(expr));
 
-		if (!peek(Token::Type::Comma))
+		if (!consume(Token::Type::Comma))
 			break;
-		consume(Token::Type::Comma);
 	}
+	MUST_CONSUME(Token::Type::RightBracket);
 
-	return consume(Token::Type::RightBracket)
-		? makeNode<AST::ArrayExpression>(std::move(elements))
-		: nullptr;
+	return makeNode<AST::ArrayExpression>(std::move(elements));
 }
 
 Ptr<AST::AssignmentExpression> Parser::assignment(const Token& token, Ptr<AST::Expression> lhs)
@@ -361,7 +372,7 @@ Ptr<AST::CallExpression> Parser::call(const Token&, Ptr<AST::Expression> lhs)
 	std::vector<Ptr<AST::Expression>> arguments;
 
 	while (!peek(Token::Type::RightParenthesis)) {
-		if (!arguments.empty() && !consume(Token::Type::Comma))
+		if (!arguments.empty() && !must_consume(Token::Type::Comma))
 			return nullptr;
 
 		auto arg = expression();
@@ -369,7 +380,7 @@ Ptr<AST::CallExpression> Parser::call(const Token&, Ptr<AST::Expression> lhs)
 
 		arguments.push_back(std::move(arg));
 	}
-	ASSERT(consume(Token::Type::RightParenthesis));
+	MUST_CONSUME(Token::Type::RightParenthesis);
 
 	return makeNode<AST::CallExpression>(std::move(lhs), std::move(arguments));
 }
@@ -377,7 +388,8 @@ Ptr<AST::CallExpression> Parser::call(const Token&, Ptr<AST::Expression> lhs)
 Ptr<AST::Expression> Parser::group(const Token&)
 {
 	auto expr = expression();
-	return consume(Token::Type::RightParenthesis) ? std::move(expr) : nullptr;
+	MUST_CONSUME(Token::Type::RightParenthesis);
+	return expr;
 }
 
 Ptr<AST::ObjectExpression> Parser::object(const Token&)
@@ -394,36 +406,34 @@ Ptr<AST::ObjectExpression> Parser::object(const Token&)
 		auto id = identifier(id_token);
 		if (!id) return nullptr;
 
-		if (!consume(Token::Type::Colon))
-			return nullptr;
+		MUST_CONSUME(Token::Type::Colon);
 
 		auto expr = expression();
 		if (!expr) return nullptr;
 
 		members.emplace(std::move(id), std::move(expr));
 
-		if (!peek(Token::Type::Comma))
+		if (!consume(Token::Type::Comma))
 			break;
-		consume(Token::Type::Comma);
 	}
+	MUST_CONSUME(Token::Type::RightBrace);
 
-	return consume(Token::Type::RightBrace)
-		? makeNode<AST::ObjectExpression>(std::move(members))
-		: nullptr;
+	return makeNode<AST::ObjectExpression>(std::move(members));
 }
 
 Ptr<AST::SubscriptExpression> Parser::subscript(const Token&, Ptr<AST::Expression> lhs)
 {
 	// Allow empty subscript expressions (eg. `expr[]`)
-	if (peek(Token::Type::RightBracket)) {
-		consume();
+	if (consume(Token::Type::RightBracket)) {
 		return makeNode<AST::SubscriptExpression>(lhs);
 	}
 
 	auto expr = expression();
-	return expr && consume(Token::Type::RightBracket)
-		? makeNode<AST::SubscriptExpression>(lhs, std::move(expr))
-		: nullptr;
+	if (!expr) return nullptr;
+
+	MUST_CONSUME(Token::Type::RightBracket);
+
+	return makeNode<AST::SubscriptExpression>(lhs, std::move(expr));
 }
 
 Ptr<AST::TernaryExpression> Parser::ternary(const Token&, Ptr<AST::Expression> lhs)
@@ -431,8 +441,7 @@ Ptr<AST::TernaryExpression> Parser::ternary(const Token&, Ptr<AST::Expression> l
 	auto consequent = expression(Precedence::Ternary);
 	if (!consequent) return nullptr;
 
-	if (!consume(Token::Type::Colon))
-		return nullptr;
+	MUST_CONSUME(Token::Type::Colon);
 
 	auto alternate = expression(Precedence::Ternary);
 	if (!alternate) return nullptr;
