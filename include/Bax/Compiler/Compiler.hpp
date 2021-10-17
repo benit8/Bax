@@ -9,6 +9,7 @@
 // -----------------------------------------------------------------------------
 
 #include "Bax/Compiler/AST.hpp"
+#include <istream>
 #include <string>
 #include <string_view>
 
@@ -25,6 +26,7 @@ public:
 	Compiler();
 	~Compiler();
 
+	bool do_istream(std::istream& input);
 	bool do_file(const std::string& filename);
 	bool do_string(std::string_view source);
 

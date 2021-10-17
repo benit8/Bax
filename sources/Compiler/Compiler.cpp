@@ -22,12 +22,17 @@ Compiler::Compiler()
 Compiler::~Compiler()
 {}
 
+bool Compiler::do_istream(std::istream& input)
+{
+	std::string source { std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>() };
+	return do_string(source);
+}
+
 bool Compiler::do_file(const std::string& filename)
 {
 	Log::debug("do_file(\"{}\")", filename);
-	std::ifstream ifs(filename);
-	std::string source { std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>() };
-	return do_string(source);
+	std::ifstream file(filename);
+	return do_istream(file);
 }
 
 bool Compiler::do_string(std::string_view source)
