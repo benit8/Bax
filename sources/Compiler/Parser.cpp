@@ -167,6 +167,7 @@ Ptr<AST::Statement> Parser::statement()
 		case Token::Type::Identifier: return expression_statement();
 		case Token::Type::If:         return if_statement();
 		case Token::Type::LeftBrace:  return block_statement();
+		case Token::Type::While:      return while_statement();
 		default:
 			Log::error("Unexpected token {}, expected statement", m_current_token);
 			break;
@@ -585,6 +586,25 @@ Ptr<AST::IfStatement> Parser::if_statement()
 		std::move(condition),
 		std::move(consequent),
 		std::move(alternate)
+	);
+}
+
+Ptr<AST::WhileStatement> Parser::while_statement()
+{
+	MUST_CONSUME(Token::Type::While);
+	MUST_CONSUME(Token::Type::LeftParenthesis);
+
+	auto condition = expression();
+	if (!condition) return nullptr;
+
+	MUST_CONSUME(Token::Type::RightParenthesis);
+
+	auto body = statement();
+	if (!body) return nullptr;
+
+	return makeNode<AST::WhileStatement>(
+		std::move(condition),
+		std::move(body)
 	);
 }
 

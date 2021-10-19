@@ -396,6 +396,24 @@ namespace Bax
 			}
 		};
 
+		struct WhileStatement final : public Statement
+		{
+			Ptr<Expression> condition;
+			Ptr<Statement> body;
+
+			WhileStatement(Ptr<Expression> cond, Ptr<Statement> bd)
+			: condition(std::move(cond))
+			, body(std::move(bd))
+			{}
+
+			const char* class_name() const { return "WhileStatement"; }
+			void dump(int i = 0) const {
+				Node::dump(i);
+				condition->dump(i + 1);
+				body->dump(i + 1);
+			}
+		};
+
 		/// 2. A. Declarations -------------------------------------------------
 
 		struct Declaration : public Statement
