@@ -44,8 +44,14 @@ public:
 		Properties,  // . ?. ( [
 	};
 
+	enum class Associativity {
+		Left,
+		Right,
+	};
+
 	struct GrammarRule {
 		Precedence precedence;
+		Associativity associativity;
 		std::function<Ptr<AST::Expression>(Parser*, const Token&)> prefix;
 		std::function<Ptr<AST::Expression>(Parser*, const Token&, Ptr<AST::Expression>)> infix;
 	};
