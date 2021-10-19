@@ -55,7 +55,7 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 	{ Token::Type::LessLessEquals,           { Precedence::Assigns,     nullptr,            INFIX(assignment) } },
 	{ Token::Type::Minus,                    { Precedence::Terms,       PREFIX(unary),      INFIX(binary)     } },
 	{ Token::Type::MinusEquals,              { Precedence::Assigns,     nullptr,            INFIX(assignment) } },
-	{ Token::Type::MinusMinus,               { Precedence::Increments,  PREFIX(unary),      nullptr           } },
+	{ Token::Type::MinusMinus,               { Precedence::Updates,     PREFIX(update),     INFIX(update)     } },
 	{ Token::Type::Null,                     { Precedence::Lowest,      PREFIX(null),       nullptr           } },
 	{ Token::Type::Number,                   { Precedence::Lowest,      PREFIX(number),     nullptr           } },
 	{ Token::Type::Percent,                  { Precedence::Factors,     nullptr,            INFIX(binary)     } },
@@ -66,7 +66,7 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 	{ Token::Type::PipePipeEquals,           { Precedence::Assigns,     nullptr,            INFIX(assignment) } },
 	{ Token::Type::Plus,                     { Precedence::Terms,       PREFIX(unary),      INFIX(binary)     } },
 	{ Token::Type::PlusEquals,               { Precedence::Assigns,     nullptr,            INFIX(assignment) } },
-	{ Token::Type::PlusPlus,                 { Precedence::Increments,  PREFIX(unary),      nullptr           } },
+	{ Token::Type::PlusPlus,                 { Precedence::Updates,     PREFIX(update),     INFIX(update)     } },
 	{ Token::Type::Question,                 { Precedence::Ternary,     nullptr,            INFIX(ternary)    } },
 	{ Token::Type::QuestionColon,            { Precedence::Coalesce,    nullptr,            INFIX(binary)     } },
 	{ Token::Type::QuestionDot,              { Precedence::Properties,  nullptr,            INFIX(binary)     } },
@@ -498,9 +498,7 @@ Ptr<AST::UnaryExpression> Parser::unary(const Token& token)
 	static const std::unordered_map<Token::Type, AST::UnaryExpression::Operators> unary_operators = {
 		{ Token::Type::Exclamation, AST::UnaryExpression::Operators::BooleanNot },
 		{ Token::Type::Plus,        AST::UnaryExpression::Operators::Positive   },
-		{ Token::Type::PlusPlus,    AST::UnaryExpression::Operators::Increment  },
 		{ Token::Type::Minus,       AST::UnaryExpression::Operators::Negative   },
-		{ Token::Type::MinusMinus,  AST::UnaryExpression::Operators::Decrement  },
 		{ Token::Type::Tilde,       AST::UnaryExpression::Operators::BitwiseNot },
 	};
 
@@ -510,6 +508,29 @@ Ptr<AST::UnaryExpression> Parser::unary(const Token& token)
 	return makeNode<AST::UnaryExpression>(
 		unary_operators.at(token.type),
 		std::move(rhs)
+	);
+}
+
+Ptr<AST::UpdateExpression> Parser::update(const Token& token, Ptr<AST::Expression> lhs)
+{
+	static const std::unordered_map<Token::Type, AST::UpdateExpression::Operators> update_operators = {
+		{ Token::Type::PlusPlus,   AST::UpdateExpression::Operators::Increment },
+		{ Token::Type::MinusMinus, AST::UpdateExpression::Operators::Decrement },
+	};
+
+	bool is_prefix_update = false;
+
+	// `lhs` will be a `nullptr` in the case of an infix {in,de}crement.
+	if (!lhs) {
+		is_prefix_update = true;
+		lhs = expression(Precedence::Updates);
+		if (!lhs) return nullptr;
+	}
+
+	return makeNode<AST::UpdateExpression>(
+		update_operators.at(token.type),
+		std::move(lhs),
+		is_prefix_update
 	);
 }
 
@@ -551,9 +572,10 @@ Ptr<AST::ExpressionStatement> Parser::expression_statement()
 	MUST_CONSUME(Token::Type::Semicolon);
 
 	/// FIXME: Check against actual types, not strings
-	static const std::array<std::string, 2> allowed_expressions = {
+	static const std::array<std::string, 3> allowed_expressions = {
 		"AssignmentExpression",
 		"CallExpression",
+		"UpdateExpression",
 	};
 	if (!CONTAINS(allowed_expressions, expr->class_name())) {
 		Log::error("Expression of type {} is not allowed as a statement", expr->class_name());

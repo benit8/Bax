@@ -249,8 +249,6 @@ namespace Bax
 			enum class Operators {
 				BitwiseNot,
 				BooleanNot,
-				Decrement,
-				Increment,
 				Negative,
 				Positive,
 			} op;
@@ -266,6 +264,29 @@ namespace Bax
 			void dump(int i = 0) const {
 				priv::print(i, "{}({})\n", class_name(), (int)op);
 				rhs->dump(i + 1);
+			}
+		};
+
+		struct UpdateExpression final : public Expression
+		{
+			enum class Operators {
+				Increment,
+				Decrement,
+			} op;
+
+			Ptr<Expression> expr; // Neither a `lhr` nor `rhs`
+			bool is_prefix_update;
+
+			UpdateExpression(Operators o, Ptr<Expression> r, bool pre)
+			: op(o)
+			, expr(std::move(r))
+			, is_prefix_update(pre)
+			{}
+
+			const char* class_name() const { return "UpdateExpression"; }
+			void dump(int i = 0) const {
+				priv::print(i, "{}{}({})\n", is_prefix_update ? "Pre" : "Post", class_name(), (int)op);
+				expr->dump(i + 1);
 			}
 		};
 

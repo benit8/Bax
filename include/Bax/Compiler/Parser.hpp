@@ -40,7 +40,7 @@ public:
 		Factors,     // * / %
 		Power,       // **
 		Unaries,     // ! + - ~
-		Increments,  // ++ --
+		Updates,     // ++ --
 		Properties,  // . ?. ( [
 	};
 
@@ -81,16 +81,17 @@ private:
 	Ptr<AST::Number> number(const Token&);
 	Ptr<AST::String> string(const Token&);
 
-	Ptr<AST::Expression> group(const Token&);
-	Ptr<AST::Identifier> identifier(const Token&);
 	Ptr<AST::ArrayExpression> array(const Token&);
 	Ptr<AST::AssignmentExpression> assignment(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::BinaryExpression> binary(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::CallExpression> call(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::Expression> group(const Token&);
+	Ptr<AST::Identifier> identifier(const Token&);
 	Ptr<AST::ObjectExpression> object(const Token&);
 	Ptr<AST::SubscriptExpression> subscript(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::TernaryExpression> ternary(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::UnaryExpression> unary(const Token&);
+	Ptr<AST::UpdateExpression> update(const Token&, Ptr<AST::Expression> = nullptr);
 
 	Ptr<AST::BlockStatement> block_statement();
 	Ptr<AST::ExpressionStatement> expression_statement();
