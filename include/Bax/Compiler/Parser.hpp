@@ -93,6 +93,7 @@ private:
 	Ptr<AST::CallExpression> call(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::Expression> group(const Token&);
 	Ptr<AST::Identifier> identifier(const Token&);
+	Ptr<AST::MatchExpression> match(const Token&);
 	Ptr<AST::MemberExpression> member(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::ObjectExpression> object(const Token&);
 	Ptr<AST::SubscriptExpression> subscript(const Token&, Ptr<AST::Expression>);

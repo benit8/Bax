@@ -185,6 +185,34 @@ namespace Bax
 			}
 		};
 
+		struct MatchExpression final : public Expression
+		{
+			using CasesType = std::vector<std::pair<std::vector<Ptr<Expression>>, Ptr<Expression>>>;
+
+			Ptr<Expression> subject;
+			CasesType cases;
+
+			MatchExpression(Ptr<Expression> s, CasesType c)
+			: subject(std::move(s))
+			, cases(std::move(c))
+			{}
+
+			const char* class_name() const { return "MatchExpression"; }
+			void dump(int i = 0) const {
+				Expression::dump(i);
+				subject->dump(i + 1);
+				for (auto& c : cases) {
+					for (auto& ce : c.first) {
+						if (ce)
+							ce->dump(i + 1);
+						else
+							priv::print(i + 1, "default\n");
+					}
+					c.second->dump(i + 1);
+				}
+			}
+		};
+
 		struct MemberExpression final : public Expression
 		{
 			enum class Operators {

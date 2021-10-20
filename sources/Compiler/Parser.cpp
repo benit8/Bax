@@ -56,6 +56,7 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 	{ Token::Type::LessLess,                 { Precedence::Shifts,      Associativity::Left,  nullptr,            INFIX(binary)     } },
 	{ Token::Type::LessLessEquals,           { Precedence::Assigns,     Associativity::Right, nullptr,            INFIX(assignment) } },
 	{ Token::Type::Minus,                    { Precedence::Terms,       Associativity::Left,  PREFIX(unary),      INFIX(binary)     } },
+	{ Token::Type::Match,                    { Precedence::Lowest,      Associativity::Right, PREFIX(match),      nullptr           } },
 	{ Token::Type::MinusEquals,              { Precedence::Assigns,     Associativity::Right, nullptr,            INFIX(assignment) } },
 	{ Token::Type::MinusMinus,               { Precedence::Updates,     Associativity::Right, PREFIX(update),     INFIX(update)     } },
 	{ Token::Type::Null,                     { Precedence::Lowest,      Associativity::Right, PREFIX(null),       nullptr           } },
@@ -434,6 +435,54 @@ Ptr<AST::Expression> Parser::group(const Token&)
 	auto expr = expression();
 	MUST_CONSUME(Token::Type::RightParenthesis);
 	return expr;
+}
+
+Ptr<AST::MatchExpression> Parser::match(const Token&)
+{
+	MUST_CONSUME(Token::Type::LeftParenthesis);
+	auto subject = expression();
+	if (!subject) return nullptr;
+	MUST_CONSUME(Token::Type::RightParenthesis);
+
+	AST::MatchExpression::CasesType cases;
+
+	MUST_CONSUME(Token::Type::LeftBrace);
+	bool has_default = false;
+	while (!peek(Token::Type::Eof) && !peek(Token::Type::RightBrace)) {
+		std::vector<Ptr<AST::Expression>> cases_expressions;
+		do {
+			Ptr<AST::Expression> expr = nullptr;
+			if (consume(Token::Type::Default)) {
+				if (has_default) {
+					Log::error("Match expression already has a 'default' expression, found other {}", m_current_token);
+					return nullptr;
+				}
+				has_default = true;
+			}
+			else {
+				expr = expression();
+				if (!expr) return nullptr;
+			}
+			cases_expressions.push_back(std::move(expr));
+			if (!consume(Token::Type::Comma))
+				break;
+		} while (!peek(Token::Type::EqualsGreater));
+
+		MUST_CONSUME(Token::Type::EqualsGreater);
+
+		auto expr = expression();
+		if (!expr) return nullptr;
+		cases.push_back(std::make_pair(std::move(cases_expressions), std::move(expr)));
+
+		if (!consume(Token::Type::Comma))
+			break;
+	}
+	MUST_CONSUME(Token::Type::RightBrace);
+
+	return makeNode<AST::MatchExpression>(
+		std::move(subject),
+		std::move(cases)
+	);
 }
 
 Ptr<AST::MemberExpression> Parser::member(const Token& token, Ptr<AST::Expression> lhs)

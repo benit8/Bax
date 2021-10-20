@@ -25,11 +25,13 @@
 	__ENUMERATE(ColonColon)               \
 	__ENUMERATE(Comma)                    \
 	__ENUMERATE(Const)                    \
+	__ENUMERATE(Default)                  \
 	__ENUMERATE(Dot)                      \
 	__ENUMERATE(Else)                     \
 	__ENUMERATE(Eof)                      \
 	__ENUMERATE(Equals)                   \
 	__ENUMERATE(EqualsEquals)             \
+	__ENUMERATE(EqualsGreater)            \
 	__ENUMERATE(Exclamation)              \
 	__ENUMERATE(ExclamationEquals)        \
 	__ENUMERATE(Extends)                  \
@@ -51,6 +53,7 @@
 	__ENUMERATE(LessLess)                 \
 	__ENUMERATE(LessLessEquals)           \
 	__ENUMERATE(Let)                      \
+	__ENUMERATE(Match)                    \
 	__ENUMERATE(Minus)                    \
 	__ENUMERATE(MinusEquals)              \
 	__ENUMERATE(MinusMinus)               \

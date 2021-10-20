@@ -19,6 +19,7 @@ namespace Bax
 const std::unordered_map<std::string_view, Token::Type> Lexer::keywords = {
 	{ "class",      Token::Type::Class      },
 	{ "const",      Token::Type::Const      },
+	{ "default",    Token::Type::Default    },
 	{ "else",       Token::Type::Else       },
 	{ "extends",    Token::Type::Extends    },
 	{ "false",      Token::Type::False      },
@@ -26,6 +27,7 @@ const std::unordered_map<std::string_view, Token::Type> Lexer::keywords = {
 	{ "if",         Token::Type::If         },
 	{ "implements", Token::Type::Implements },
 	{ "let",        Token::Type::Let        },
+	{ "match",      Token::Type::Match      },
 	{ "null",       Token::Type::Null       },
 	{ "private",    Token::Type::Private    },
 	{ "protected",  Token::Type::Protected  },
@@ -81,7 +83,8 @@ const Lexer::OperatorTreeNode Lexer::operator_tree_root = {
 			{'=', { Token::Type::LessEquals, {} }}
 		} }},
 		{'=', { Token::Type::Equals, {
-			{'=', { Token::Type::EqualsEquals, {} }}
+			{'=', { Token::Type::EqualsEquals, {} }},
+			{'>', { Token::Type::EqualsGreater, {} }}
 		} }},
 		{'>', { Token::Type::Greater, {
 			{'>', { Token::Type::GreaterGreater, {
