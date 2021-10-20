@@ -556,6 +556,11 @@ Ptr<AST::UpdateExpression> Parser::update(const Token& token, Ptr<AST::Expressio
 		{ Token::Type::MinusMinus, AST::UpdateExpression::Operators::Decrement },
 	};
 
+	static const std::array<std::string, 2> allowed_expressions = {
+		"Identifier",
+		"MemberExpression",
+	};
+
 	bool is_prefix_update = false;
 
 	// `lhs` will be a `nullptr` in the case of an infix {in,de}crement.
@@ -563,6 +568,14 @@ Ptr<AST::UpdateExpression> Parser::update(const Token& token, Ptr<AST::Expressio
 		is_prefix_update = true;
 		lhs = expression(Precedence::Updates);
 		if (!lhs) return nullptr;
+	}
+	if (!CONTAINS(allowed_expressions, lhs->class_name())) {
+		Log::error(
+			"{}-hand side of update operator must be an identifier or a member expression, found {} instead.",
+			is_prefix_update ? "Right" : "Left",
+			lhs->class_name()
+		);
+		return nullptr;
 	}
 
 	return makeNode<AST::UpdateExpression>(
