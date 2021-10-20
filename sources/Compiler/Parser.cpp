@@ -32,9 +32,11 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 	{ Token::Type::AsteriskAsterisk,         { Precedence::Power,       Associativity::Right, nullptr,            INFIX(binary)     } },
 	{ Token::Type::AsteriskAsteriskEquals,   { Precedence::Assigns,     Associativity::Right, nullptr,            INFIX(assignment) } },
 	{ Token::Type::AsteriskEquals,           { Precedence::Assigns,     Associativity::Right, nullptr,            INFIX(assignment) } },
+	{ Token::Type::Backslash,                { Precedence::Properties,  Associativity::Left,  nullptr,            INFIX(member)     } },
 	{ Token::Type::Caret,                    { Precedence::BitwiseXor,  Associativity::Left,  nullptr,            INFIX(binary)     } },
 	{ Token::Type::CaretEquals,              { Precedence::Assigns,     Associativity::Right, nullptr,            INFIX(assignment) } },
-	{ Token::Type::Dot,                      { Precedence::Properties,  Associativity::Right, nullptr,            INFIX(binary)     } },
+	{ Token::Type::ColonColon,               { Precedence::Properties,  Associativity::Left,  nullptr,            INFIX(member)     } },
+	{ Token::Type::Dot,                      { Precedence::Properties,  Associativity::Left,  nullptr,            INFIX(member)     } },
 	{ Token::Type::Equals,                   { Precedence::Assigns,     Associativity::Right, nullptr,            INFIX(assignment) } },
 	{ Token::Type::EqualsEquals,             { Precedence::Equalities,  Associativity::Left,  nullptr,            INFIX(binary)     } },
 	{ Token::Type::Exclamation,              { Precedence::Unaries,     Associativity::Right, PREFIX(unary),      nullptr           } },
@@ -69,7 +71,7 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 	{ Token::Type::PlusPlus,                 { Precedence::Updates,     Associativity::Right, PREFIX(update),     INFIX(update)     } },
 	{ Token::Type::Question,                 { Precedence::Ternary,     Associativity::Right, nullptr,            INFIX(ternary)    } },
 	{ Token::Type::QuestionColon,            { Precedence::Coalesce,    Associativity::Right, nullptr,            INFIX(binary)     } },
-	{ Token::Type::QuestionDot,              { Precedence::Properties,  Associativity::Left,  nullptr,            INFIX(binary)     } },
+	{ Token::Type::QuestionDot,              { Precedence::Properties,  Associativity::Left,  nullptr,            INFIX(member)     } },
 	{ Token::Type::QuestionQuestion,         { Precedence::Coalesce,    Associativity::Left,  nullptr,            INFIX(binary)     } },
 	{ Token::Type::QuestionQuestionEquals,   { Precedence::Assigns,     Associativity::Right, nullptr,            INFIX(assignment) } },
 	{ Token::Type::Slash,                    { Precedence::Factors,     Associativity::Left,  nullptr,            INFIX(binary)     } },
@@ -214,6 +216,7 @@ Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
 
 		token = consume();
 		node = (it_->second.infix)(this, token, std::move(node));
+		if (!node) return nullptr;
 	}
 
 	return node;
@@ -380,7 +383,6 @@ Ptr<AST::BinaryExpression> Parser::binary(const Token& token, Ptr<AST::Expressio
 		{ Token::Type::Asterisk,           AST::BinaryExpression::Operators::Multiply            },
 		{ Token::Type::AsteriskAsterisk,   AST::BinaryExpression::Operators::Power               },
 		{ Token::Type::Caret,              AST::BinaryExpression::Operators::BitwiseXor          },
-		{ Token::Type::Dot,                AST::BinaryExpression::Operators::Access              },
 		{ Token::Type::EqualsEquals,       AST::BinaryExpression::Operators::Equals              },
 		{ Token::Type::ExclamationEquals,  AST::BinaryExpression::Operators::Inequals            },
 		{ Token::Type::Greater,            AST::BinaryExpression::Operators::GreaterThan         },
@@ -394,7 +396,6 @@ Ptr<AST::BinaryExpression> Parser::binary(const Token& token, Ptr<AST::Expressio
 		{ Token::Type::Pipe,               AST::BinaryExpression::Operators::BitwiseOr           },
 		{ Token::Type::PipePipe,           AST::BinaryExpression::Operators::BooleanOr           },
 		{ Token::Type::Plus,               AST::BinaryExpression::Operators::Add                 },
-		{ Token::Type::QuestionDot,        AST::BinaryExpression::Operators::NullsafeAccess      },
 		{ Token::Type::QuestionColon,      AST::BinaryExpression::Operators::Ternary             },
 		{ Token::Type::QuestionQuestion,   AST::BinaryExpression::Operators::Coalesce            },
 		{ Token::Type::Slash,              AST::BinaryExpression::Operators::Divide              },
@@ -433,6 +434,40 @@ Ptr<AST::Expression> Parser::group(const Token&)
 	auto expr = expression();
 	MUST_CONSUME(Token::Type::RightParenthesis);
 	return expr;
+}
+
+Ptr<AST::MemberExpression> Parser::member(const Token& token, Ptr<AST::Expression> lhs)
+{
+	static const std::unordered_map<Token::Type, AST::MemberExpression::Operators> member_operators = {
+		{ Token::Type::Backslash,   AST::MemberExpression::Operators::Namespace },
+		{ Token::Type::ColonColon,  AST::MemberExpression::Operators::Static    },
+		{ Token::Type::Dot,         AST::MemberExpression::Operators::Member    },
+		{ Token::Type::QuestionDot, AST::MemberExpression::Operators::Nullsafe  },
+	};
+
+	static const std::array<std::string, 2> allowed_lhs = {
+		"Identifier",
+		"MemberExpression",
+	};
+
+	if (!CONTAINS(allowed_lhs, lhs->class_name())) {
+		Log::error("Left-hand side of member expressions must be an identifier or another member expression, found {} instead.", lhs->class_name());
+		return nullptr;
+	}
+
+	auto rhs = expression(Precedence::Properties);
+	if (!rhs) return nullptr;
+
+	if (strcmp(rhs->class_name(), "Identifier") != 0) {
+		Log::error("Right-hand side of member expressions must be an identifier, found {} instead.", rhs->class_name());
+		return nullptr;
+	}
+
+	return makeNode<AST::MemberExpression>(
+		member_operators.at(token.type),
+		std::move(lhs),
+		std::move(rhs)
+	);
 }
 
 Ptr<AST::ObjectExpression> Parser::object(const Token&)

@@ -70,7 +70,9 @@ const Lexer::OperatorTreeNode Lexer::operator_tree_root = {
 		{'/', { Token::Type::Slash, {
 			{'=', { Token::Type::SlashEquals, {} }}
 		} }},
-		{':', { Token::Type::Colon, {} }},
+		{':', { Token::Type::Colon, {
+			{':', { Token::Type::ColonColon, {} }},
+		} }},
 		{';', { Token::Type::Semicolon, {} }},
 		{'<', { Token::Type::Less, {
 			{'<', { Token::Type::LessLess, {
@@ -95,6 +97,7 @@ const Lexer::OperatorTreeNode Lexer::operator_tree_root = {
 			} }},
 		} }},
 		{'[', { Token::Type::LeftBracket, {} }},
+		{'\\', { Token::Type::Backslash, {} }},
 		{']', { Token::Type::RightBracket, {} }},
 		{'^', { Token::Type::Caret, {
 			{'=', { Token::Type::CaretEquals, {} }}

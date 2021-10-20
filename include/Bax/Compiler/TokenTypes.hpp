@@ -17,10 +17,12 @@
 	__ENUMERATE(AsteriskAsterisk)         \
 	__ENUMERATE(AsteriskAsteriskEquals)   \
 	__ENUMERATE(AsteriskEquals)           \
+	__ENUMERATE(Backslash)                \
 	__ENUMERATE(Caret)                    \
 	__ENUMERATE(CaretEquals)              \
 	__ENUMERATE(Class)                    \
 	__ENUMERATE(Colon)                    \
+	__ENUMERATE(ColonColon)               \
 	__ENUMERATE(Comma)                    \
 	__ENUMERATE(Const)                    \
 	__ENUMERATE(Dot)                      \

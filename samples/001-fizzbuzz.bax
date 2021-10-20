@@ -12,6 +12,6 @@
 	}
 
 	if (i > 100) {
-		System.exit();
+		System\exit(System\EXIT_FAILURE);
 	}
 }

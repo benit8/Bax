@@ -127,7 +127,6 @@ namespace Bax
 		struct BinaryExpression final : public Expression
 		{
 			enum class Operators {
-				Access,
 				Add,
 				BitwiseAnd,
 				BitwiseLeftShift,
@@ -146,7 +145,6 @@ namespace Bax
 				LessThanOrEquals,
 				Modulo,
 				Multiply,
-				NullsafeAccess,
 				Power,
 				Substract,
 				Ternary,
@@ -184,6 +182,31 @@ namespace Bax
 				lhs->dump(i + 1);
 				for (auto &arg : arguments)
 					arg->dump(i + 1);
+			}
+		};
+
+		struct MemberExpression final : public Expression
+		{
+			enum class Operators {
+				Member,
+				Namespace,
+				Nullsafe,
+				Static,
+			} op;
+
+			Ptr<Expression> lhs, rhs;
+
+			MemberExpression(Operators o, Ptr<Expression> l, Ptr<Expression> r)
+			: op(o)
+			, lhs(std::move(l))
+			, rhs(std::move(r))
+			{}
+
+			const char* class_name() const { return "MemberExpression"; }
+			void dump(int i = 0) const {
+				priv::print(i, "{}({})\n", class_name(), (int)op);
+				lhs->dump(i + 1);
+				rhs->dump(i + 1);
 			}
 		};
 
