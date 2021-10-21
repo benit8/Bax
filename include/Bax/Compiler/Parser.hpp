@@ -58,7 +58,7 @@ public:
 
 private:
 	static const std::unordered_map<Token::Type, GrammarRule> grammar_rules;
-	static const std::array<Token::Type, 3> declaration_tokens;
+	static const std::array<Token::Type, 4> declaration_tokens;
 	static const std::array<Token::Type, 6> statement_tokens;
 
 	Lexer m_lexer;
@@ -101,10 +101,13 @@ private:
 	Ptr<AST::UnaryExpression> unary(const Token&);
 	Ptr<AST::UpdateExpression> update(const Token&, Ptr<AST::Expression> = nullptr);
 
-	Ptr<AST::BlockStatement> block_statement();
-	Ptr<AST::ExpressionStatement> expression_statement();
-	Ptr<AST::IfStatement> if_statement();
-	Ptr<AST::ReturnStatement> return_statement();
+	Ptr<AST::BlockStatement> block_statement(const Token&);
+	Ptr<AST::ExpressionStatement> expression_statement(const Token&);
+	Ptr<AST::IfStatement> if_statement(const Token&);
+	Ptr<AST::ReturnStatement> return_statement(const Token&);
+	Ptr<AST::WhileStatement> while_statement(const Token&);
+
+	Ptr<AST::VariableDeclaration> variable_declaration(const Token&);
 
 	uint32_t parse_escape_sequence(std::string_view::const_iterator&);
 };

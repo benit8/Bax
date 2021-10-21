@@ -85,10 +85,11 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 #undef PREFIX
 #undef INFIX
 
-const std::array<Token::Type, 3> Parser::declaration_tokens = {
+const std::array<Token::Type, 4> Parser::declaration_tokens = {
 	Token::Type::Class,
 	Token::Type::Const,
 	Token::Type::Let,
+	Token::Type::Static,
 };
 
 const std::array<Token::Type, 6> Parser::statement_tokens = {
@@ -157,7 +158,10 @@ Ptr<AST::Node> Parser::run()
 Ptr<AST::Declaration> Parser::declaration()
 {
 	switch (m_current_token.type) {
-		// case Token::Type::Class: return class_declaration();
+		// case Token::Type::Class: return class_declaration(consume());
+		case Token::Type::Const:  return variable_declaration(consume());
+		case Token::Type::Let:    return variable_declaration(consume());
+		case Token::Type::Static: return variable_declaration(consume());
 		default:
 			Log::error("Unexpected token {}, expected declaration", m_current_token);
 			return nullptr;
@@ -167,10 +171,11 @@ Ptr<AST::Declaration> Parser::declaration()
 Ptr<AST::Statement> Parser::statement()
 {
 	switch (m_current_token.type) {
-		case Token::Type::Identifier: return expression_statement();
-		case Token::Type::If:         return if_statement();
-		case Token::Type::LeftBrace:  return block_statement();
-		case Token::Type::Return:     return return_statement();
+		case Token::Type::Identifier: return expression_statement(consume());
+		case Token::Type::If:         return if_statement(consume());
+		case Token::Type::LeftBrace:  return block_statement(consume());
+		case Token::Type::Return:     return return_statement(consume());
+		case Token::Type::While:      return while_statement(consume());
 		default:
 			Log::error("Unexpected token {}, expected statement", m_current_token);
 			break;
@@ -636,11 +641,9 @@ Ptr<AST::UpdateExpression> Parser::update(const Token& token, Ptr<AST::Expressio
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::BlockStatement> Parser::block_statement()
+Ptr<AST::BlockStatement> Parser::block_statement(const Token&)
 {
 	std::vector<Ptr<AST::Statement>> statements;
-
-	MUST_CONSUME(Token::Type::LeftBrace);
 
 	while (!peek(Token::Type::Eof) && !peek(Token::Type::RightBrace)) {
 		if (CONTAINS(declaration_tokens, m_current_token.type)) {
@@ -664,7 +667,7 @@ Ptr<AST::BlockStatement> Parser::block_statement()
 	return makeNode<AST::BlockStatement>(std::move(statements));
 }
 
-Ptr<AST::ExpressionStatement> Parser::expression_statement()
+Ptr<AST::ExpressionStatement> Parser::expression_statement(const Token&)
 {
 	auto expr = expression();
 	if (!expr) return nullptr;
@@ -685,9 +688,8 @@ Ptr<AST::ExpressionStatement> Parser::expression_statement()
 	return makeNode<AST::ExpressionStatement>(std::move(expr));
 }
 
-Ptr<AST::IfStatement> Parser::if_statement()
+Ptr<AST::IfStatement> Parser::if_statement(const Token&)
 {
-	MUST_CONSUME(Token::Type::If);
 	MUST_CONSUME(Token::Type::LeftParenthesis);
 
 	auto condition = expression();
@@ -711,9 +713,8 @@ Ptr<AST::IfStatement> Parser::if_statement()
 	);
 }
 
-Ptr<AST::ReturnStatement> Parser::return_statement()
+Ptr<AST::ReturnStatement> Parser::return_statement(const Token&)
 {
-	MUST_CONSUME(Token::Type::Return);
 	auto expr = expression();
 	if (!expr) return nullptr;
 
@@ -721,9 +722,8 @@ Ptr<AST::ReturnStatement> Parser::return_statement()
 	return makeNode<AST::ReturnStatement>(std::move(expr));
 }
 
-Ptr<AST::WhileStatement> Parser::while_statement()
+Ptr<AST::WhileStatement> Parser::while_statement(const Token&)
 {
-	MUST_CONSUME(Token::Type::While);
 	MUST_CONSUME(Token::Type::LeftParenthesis);
 
 	auto condition = expression();
@@ -737,6 +737,49 @@ Ptr<AST::WhileStatement> Parser::while_statement()
 	return makeNode<AST::WhileStatement>(
 		std::move(condition),
 		std::move(body)
+	);
+}
+
+// -----------------------------------------------------------------------------
+
+Ptr<AST::VariableDeclaration> Parser::variable_declaration(const Token& t)
+{
+	auto token = t;
+
+	bool is_static = false;
+	if (token.type == Token::Type::Static) {
+		is_static = true;
+		token = consume();
+	}
+
+	bool is_constant = false;
+	if (token.type == Token::Type::Const)
+		is_constant = true;
+	else if (token.type != Token::Type::Let) {
+		Log::error("Unexpected token {}, expected 'let' or 'const'", token);
+		return nullptr;
+	}
+
+	token = consume();
+	if (token.type != Token::Type::Identifier) {
+		Log::error("Unexpected token {}, expected identifier", token);
+		return nullptr;
+	}
+	auto name = identifier(token);
+	if (!name) return nullptr;
+
+	MUST_CONSUME(Token::Type::Equals);
+
+	auto value = expression();
+	if (!value) return nullptr;
+
+	MUST_CONSUME(Token::Type::Semicolon);
+
+	return makeNode<AST::VariableDeclaration>(
+		std::move(name),
+		std::move(value),
+		is_constant,
+		is_static
 	);
 }
 

@@ -83,6 +83,7 @@
 	__ENUMERATE(Semicolon)                \
 	__ENUMERATE(Slash)                    \
 	__ENUMERATE(SlashEquals)              \
+	__ENUMERATE(Static)                   \
 	__ENUMERATE(String)                   \
 	__ENUMERATE(Tilde)                    \
 	__ENUMERATE(True)                     \

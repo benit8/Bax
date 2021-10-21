@@ -1,27 +1,16 @@
 {
-	while (i < 100) {
-		/*
-		if (i % 15 == 0)
-			println("FizzBuzz");
-		else if (i % 3 == 0)
-			println("Fizz");
-		else if (i % 5 == 0)
-			println("Buzz");
-		else
-			println("{}", i);
-		*/
+	let i = 0;
+	const a = ['a', 'b', 'c', 'd'];
+	static const counter = 0;
 
-		println(match (0) {
-			i % 15  => "FizzBuzz",
-			i % 3   => "Fizz",
-			i % 5   => "Buzz",
-			default => i.toString(),
-		});
-
-		i++;
-	}
-
-	if (i > 100) {
-		System\exit(System\EXIT_FAILURE);
-	}
+	/*const fizzbuzz = function (Number maximum) {
+		for (i : range(0, maximum)) {
+			println(match (0) {
+				i % 15  => "FizzBuzz",
+				i % 3   => "Fizz",
+				i % 5   => "Buzz",
+				default => i.toString(),
+			});
+		}
+	};*/
 }

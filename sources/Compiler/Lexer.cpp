@@ -33,6 +33,7 @@ const std::unordered_map<std::string_view, Token::Type> Lexer::keywords = {
 	{ "protected",  Token::Type::Protected  },
 	{ "public",     Token::Type::Public     },
 	{ "return",     Token::Type::Return     },
+	{ "static",     Token::Type::Static     },
 	{ "true",       Token::Type::True       },
 	{ "while",      Token::Type::While      },
 };

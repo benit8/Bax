@@ -507,6 +507,32 @@ namespace Bax
 		{
 			virtual const char* class_name() const { return "Declaration"; }
 		};
+
+		struct VariableDeclaration : public Declaration
+		{
+			Ptr<Identifier> name;
+			Ptr<Expression> value;
+			bool is_constant;
+			bool is_static;
+
+			VariableDeclaration(Ptr<Identifier> n, Ptr<Expression> v, bool c, bool s)
+			: name(std::move(n))
+			, value(std::move(v))
+			, is_constant(c)
+			, is_static(s)
+			{}
+
+			const char* class_name() const { return "VariableDeclaration"; }
+			void dump(int i = 0) const {
+				priv::print(i, "{}({}, {})\n",
+					class_name(),
+					is_constant ? "const" : "let",
+					is_static ? "static" : "scoped"
+				);
+				name->dump(i + 1);
+				value->dump(i + 1);
+			}
+		};
 	}
 }
 
