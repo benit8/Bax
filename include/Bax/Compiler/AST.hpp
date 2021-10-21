@@ -468,6 +468,21 @@ namespace Bax
 			}
 		};
 
+		struct ReturnStatement final : public Statement
+		{
+			Ptr<Expression> value;
+
+			ReturnStatement(Ptr<Expression> val)
+			: value(std::move(val))
+			{}
+
+			const char* class_name() const { return "ReturnStatement"; }
+			void dump(int i = 0) const {
+				Node::dump(i);
+				value->dump(i + 1);
+			}
+		};
+
 		struct WhileStatement final : public Statement
 		{
 			Ptr<Expression> condition;

@@ -104,7 +104,7 @@ private:
 	Ptr<AST::BlockStatement> block_statement();
 	Ptr<AST::ExpressionStatement> expression_statement();
 	Ptr<AST::IfStatement> if_statement();
-	Ptr<AST::WhileStatement> while_statement();
+	Ptr<AST::ReturnStatement> return_statement();
 
 	uint32_t parse_escape_sequence(std::string_view::const_iterator&);
 };
