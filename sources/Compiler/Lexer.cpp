@@ -24,6 +24,7 @@ const std::unordered_map<std::string_view, Token::Type> Lexer::keywords = {
 	{ "extends",    Token::Type::Extends    },
 	{ "false",      Token::Type::False      },
 	{ "for",        Token::Type::For        },
+	{ "function",   Token::Type::Function   },
 	{ "if",         Token::Type::If         },
 	{ "implements", Token::Type::Implements },
 	{ "let",        Token::Type::Let        },

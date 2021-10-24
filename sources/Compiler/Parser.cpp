@@ -42,6 +42,7 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 	{ Token::Type::Exclamation,              { Precedence::Unaries,     Associativity::Right, PREFIX(unary),      nullptr           } },
 	{ Token::Type::ExclamationEquals,        { Precedence::Equalities,  Associativity::Left,  nullptr,            INFIX(binary)     } },
 	{ Token::Type::False,                    { Precedence::Lowest,      Associativity::Right, PREFIX(boolean),    nullptr           } },
+	{ Token::Type::Function,                 { Precedence::Lowest,      Associativity::Right, PREFIX(function),   nullptr           } },
 	{ Token::Type::Glyph,                    { Precedence::Lowest,      Associativity::Right, PREFIX(glyph),      nullptr           } },
 	{ Token::Type::Greater,                  { Precedence::Comparisons, Associativity::Left,  nullptr,            INFIX(binary)     } },
 	{ Token::Type::GreaterEquals,            { Precedence::Comparisons, Associativity::Left,  nullptr,            INFIX(binary)     } },
@@ -171,7 +172,7 @@ Ptr<AST::Declaration> Parser::declaration()
 Ptr<AST::Statement> Parser::statement()
 {
 	switch (m_current_token.type) {
-		case Token::Type::Identifier: return expression_statement(consume());
+		case Token::Type::Identifier: return expression_statement(peek());
 		case Token::Type::If:         return if_statement(consume());
 		case Token::Type::LeftBrace:  return block_statement(consume());
 		case Token::Type::Return:     return return_statement(consume());
@@ -420,19 +421,26 @@ Ptr<AST::BinaryExpression> Parser::binary(const Token& token, Ptr<AST::Expressio
 Ptr<AST::CallExpression> Parser::call(const Token&, Ptr<AST::Expression> lhs)
 {
 	std::vector<Ptr<AST::Expression>> arguments;
-
-	while (!peek(Token::Type::RightParenthesis)) {
-		if (!arguments.empty() && !must_consume(Token::Type::Comma))
-			return nullptr;
-
-		auto arg = expression();
-		if (!arg) return nullptr;
-
-		arguments.push_back(std::move(arg));
-	}
+	if (!parse_argument_list(arguments, Token::Type::RightParenthesis))
+		return nullptr;
 	MUST_CONSUME(Token::Type::RightParenthesis);
 
 	return makeNode<AST::CallExpression>(std::move(lhs), std::move(arguments));
+}
+
+Ptr<AST::FunctionExpression> Parser::function(const Token&)
+{
+	MUST_CONSUME(Token::Type::LeftParenthesis);
+	std::vector<Ptr<AST::Expression>> parameters;
+	if (!parse_parameter_list(parameters, Token::Type::RightParenthesis))
+		return nullptr;
+	MUST_CONSUME(Token::Type::RightParenthesis);
+
+	MUST_CONSUME(Token::Type::LeftBrace);
+	auto body = block_statement(peek());
+	if (!body) return nullptr;
+
+	return makeNode<AST::FunctionExpression>(std::move(parameters), std::move(body));
 }
 
 Ptr<AST::Expression> Parser::group(const Token&)
@@ -825,6 +833,36 @@ uint32_t Parser::parse_escape_sequence(std::string_view::const_iterator& it)
 		default: break;
 	}
 	return *--it;
+}
+
+bool Parser::parse_argument_list(std::vector<Ptr<AST::Expression>>& arguments, Token::Type stop)
+{
+	while (!peek(stop)) {
+		if (!arguments.empty() && !must_consume(Token::Type::Comma))
+			return false;
+
+		auto arg = expression();
+		if (!arg) return false;
+
+		arguments.push_back(std::move(arg));
+	}
+
+	return true;
+}
+
+bool Parser::parse_parameter_list(std::vector<Ptr<AST::Expression>>& parameters, Token::Type stop)
+{
+	while (!peek(stop)) {
+		if (!parameters.empty() && !must_consume(Token::Type::Comma))
+			return false;
+
+		auto param = expression();
+		if (!param) return false;
+
+		parameters.push_back(std::move(param));
+	}
+
+	return true;
 }
 
 }

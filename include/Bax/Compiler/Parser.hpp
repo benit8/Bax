@@ -91,6 +91,7 @@ private:
 	Ptr<AST::AssignmentExpression> assignment(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::BinaryExpression> binary(const Token&, Ptr<AST::Expression>);
 	Ptr<AST::CallExpression> call(const Token&, Ptr<AST::Expression>);
+	Ptr<AST::FunctionExpression> function(const Token&);
 	Ptr<AST::Expression> group(const Token&);
 	Ptr<AST::Identifier> identifier(const Token&);
 	Ptr<AST::MatchExpression> match(const Token&);
@@ -110,6 +111,8 @@ private:
 	Ptr<AST::VariableDeclaration> variable_declaration(const Token&);
 
 	uint32_t parse_escape_sequence(std::string_view::const_iterator&);
+	bool parse_argument_list(std::vector<Ptr<AST::Expression>>&, Token::Type stop);
+	bool parse_parameter_list(std::vector<Ptr<AST::Expression>>&, Token::Type stop);
 };
 
 }

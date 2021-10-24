@@ -27,6 +27,8 @@
 	__ENUMERATE(Const)                    \
 	__ENUMERATE(Default)                  \
 	__ENUMERATE(Dot)                      \
+	__ENUMERATE(DotDot)                   \
+	__ENUMERATE(DotDotDot)                \
 	__ENUMERATE(Else)                     \
 	__ENUMERATE(Eof)                      \
 	__ENUMERATE(Equals)                   \
@@ -37,6 +39,7 @@
 	__ENUMERATE(Extends)                  \
 	__ENUMERATE(False)                    \
 	__ENUMERATE(For)                      \
+	__ENUMERATE(Function)                 \
 	__ENUMERATE(Glyph)                    \
 	__ENUMERATE(Greater)                  \
 	__ENUMERATE(GreaterEquals)            \

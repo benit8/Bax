@@ -185,6 +185,23 @@ namespace Bax
 			}
 		};
 
+		struct BlockStatement;
+		struct FunctionExpression final : public Expression
+		{
+			using Parameter = Ptr<Expression>;
+
+			std::vector<Parameter> parameters;
+			Ptr<BlockStatement> body;
+
+			FunctionExpression(std::vector<Parameter> params, Ptr<BlockStatement> bd)
+			: parameters(std::move(params))
+			, body(std::move(bd))
+			{}
+
+			const char* class_name() const { return "FunctionExpression"; }
+			void dump(int i = 0) const;
+		};
+
 		struct MatchExpression final : public Expression
 		{
 			using CasesType = std::vector<std::pair<std::vector<Ptr<Expression>>, Ptr<Expression>>>;

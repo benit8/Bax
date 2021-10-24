@@ -3,8 +3,8 @@
 	const a = ['a', 'b', 'c', 'd'];
 	static const counter = 0;
 
-	/*const fizzbuzz = function (Number maximum) {
-		for (i : range(0, maximum)) {
+	const fizzbuzz = function (maximum) {
+		while (i < maximum) {
 			println(match (0) {
 				i % 15  => "FizzBuzz",
 				i % 3   => "Fizz",
@@ -12,5 +12,5 @@
 				default => i.toString(),
 			});
 		}
-	};*/
+	};
 }

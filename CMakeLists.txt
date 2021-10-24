@@ -46,6 +46,7 @@ PROTECTED
 
 target_sources(${PROJECT_NAME}
 PUBLIC
+	include/Bax/Compiler/AST.hpp
 	include/Bax/Compiler/Compiler.hpp
 	include/Bax/Compiler/Lexer.hpp
 	include/Bax/Compiler/Parser.hpp
@@ -62,6 +63,7 @@ PRIVATE
 	sources/Common/OptionParser.cpp
 	sources/Common/OptionParser.hpp
 	sources/Common/TTYEscapeSequences.hpp
+	sources/Compiler/AST.cpp
 	sources/Compiler/Compiler.cpp
 	sources/Compiler/Lexer.cpp
 	sources/Compiler/Parser.cpp
