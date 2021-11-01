@@ -1,16 +1,32 @@
-{
-	let i = 0;
-	const a = ['a', 'b', 'c', 'd'];
-	static const counter = 0;
+// import My\Custom\Package;
 
-	const fizzbuzz = function (maximum) {
-		while (i < maximum) {
+final class Main extends Std\Application
+{
+	protected const signature = "
+		fizzbuzz
+		{--v|verbose : Always print the counter}
+		{limit=100 : How much fizzbuzz should be printed}
+	";
+
+	public function run()
+	{
+		const max = Number::parse(this.argument("limit"));
+		this.fizzbuzz(max);
+
+		return 0;
+	}
+
+	private function fizzbuzz(limit = 100)
+	{
+		let i = 1;
+		while (i < limit) {
 			println(match (0) {
 				i % 15  => "FizzBuzz",
 				i % 3   => "Fizz",
 				i % 5   => "Buzz",
 				default => i.toString(),
 			});
+			++i;
 		}
-	};
+	}
 }

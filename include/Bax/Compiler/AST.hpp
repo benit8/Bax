@@ -525,7 +525,24 @@ namespace Bax
 			virtual const char* class_name() const { return "Declaration"; }
 		};
 
-		struct VariableDeclaration : public Declaration
+		struct ClassDeclaration final : public Declaration
+		{
+			bool is_final;
+
+			ClassDeclaration(bool f)
+			: is_final(f)
+			{}
+
+			const char* class_name() const { return "ClassDeclaration"; }
+			void dump(int i = 0) const {
+				priv::print(i, "{}({})\n",
+					class_name(),
+					is_final ? "final" : "extensible"
+				);
+			}
+		};
+
+		struct VariableDeclaration final : public Declaration
 		{
 			Ptr<Identifier> name;
 			Ptr<Expression> value;

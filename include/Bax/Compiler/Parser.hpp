@@ -13,12 +13,29 @@
 #include <array>
 #include <functional>
 #include <string_view>
+#include <type_traits>
 #include <vector>
+
+// -----------------------------------------------------------------------------
+
+#define MUST_CONSUME(TT) if (!must_consume(TT)) return nullptr;
+#define CONTAINS(ARR, VAL) (std::find((ARR).begin(), (ARR).end(), (VAL)) != (ARR).end())
 
 // -----------------------------------------------------------------------------
 
 namespace Bax
 {
+
+namespace detail {
+	template <typename T = void, typename... Ts>
+	bool is(const Ptr<AST::Node>& stmt) {
+		if (std::is_void<T>::value)
+			return false;
+		return std::dynamic_pointer_cast<T>(stmt) != nullptr
+			? true
+			: is<Ts...>(stmt);
+	}
+}
 
 class Parser
 {
@@ -58,7 +75,7 @@ public:
 
 private:
 	static const std::unordered_map<Token::Type, GrammarRule> grammar_rules;
-	static const std::array<Token::Type, 4> declaration_tokens;
+	static const std::array<Token::Type, 6> declaration_tokens;
 	static const std::array<Token::Type, 6> statement_tokens;
 
 	Lexer m_lexer;
@@ -76,10 +93,27 @@ private:
 	Token consume();
 	bool consume(Token::Type);
 	bool must_consume(Token::Type);
+	bool done() const;
 
+	Ptr<AST::Statement> top_level_statement();
+	Ptr<AST::Statement> any_statement();
 	Ptr<AST::Declaration> declaration();
 	Ptr<AST::Statement> statement();
 	Ptr<AST::Expression> expression(Precedence = Precedence::Lowest);
+
+	Ptr<AST::Identifier> identifier();
+	Ptr<AST::Identifier> namespace_express();
+
+	Ptr<AST::BlockStatement> block_statement();
+	Ptr<AST::ExpressionStatement> expression_statement();
+	Ptr<AST::IfStatement> if_statement();
+	Ptr<AST::ReturnStatement> return_statement();
+	Ptr<AST::WhileStatement> while_statement();
+
+	Ptr<AST::ClassDeclaration> class_declaration();
+	Ptr<AST::VariableDeclaration> variable_declaration();
+
+	// Grammar rules -----------------------------------------------------------
 
 	Ptr<AST::Null> null(const Token&);
 	Ptr<AST::Boolean> boolean(const Token&);
@@ -102,13 +136,7 @@ private:
 	Ptr<AST::UnaryExpression> unary(const Token&);
 	Ptr<AST::UpdateExpression> update(const Token&, Ptr<AST::Expression> = nullptr);
 
-	Ptr<AST::BlockStatement> block_statement(const Token&);
-	Ptr<AST::ExpressionStatement> expression_statement(const Token&);
-	Ptr<AST::IfStatement> if_statement(const Token&);
-	Ptr<AST::ReturnStatement> return_statement(const Token&);
-	Ptr<AST::WhileStatement> while_statement(const Token&);
-
-	Ptr<AST::VariableDeclaration> variable_declaration(const Token&);
+	// Helpers -----------------------------------------------------------------
 
 	uint32_t parse_escape_sequence(std::string_view::const_iterator&);
 	bool parse_argument_list(std::vector<Ptr<AST::Expression>>&, Token::Type stop);

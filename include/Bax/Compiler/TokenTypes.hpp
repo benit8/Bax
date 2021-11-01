@@ -9,6 +9,7 @@
 // -----------------------------------------------------------------------------
 
 #define __ENUMERATE_TOKEN_TYPES           \
+	__ENUMERATE(Abstract)                 \
 	__ENUMERATE(Ampersand)                \
 	__ENUMERATE(AmpersandAmpersand)       \
 	__ENUMERATE(AmpersandAmpersandEquals) \
@@ -38,6 +39,7 @@
 	__ENUMERATE(ExclamationEquals)        \
 	__ENUMERATE(Extends)                  \
 	__ENUMERATE(False)                    \
+	__ENUMERATE(Final)                    \
 	__ENUMERATE(For)                      \
 	__ENUMERATE(Function)                 \
 	__ENUMERATE(Glyph)                    \
@@ -48,6 +50,7 @@
 	__ENUMERATE(Identifier)               \
 	__ENUMERATE(If)                       \
 	__ENUMERATE(Implements)               \
+	__ENUMERATE(Import)                   \
 	__ENUMERATE(LeftBrace)                \
 	__ENUMERATE(LeftBracket)              \
 	__ENUMERATE(LeftParenthesis)          \
@@ -93,4 +96,5 @@
 	__ENUMERATE(Unknown)                  \
 	__ENUMERATE(UnterminatedGlyph)        \
 	__ENUMERATE(UnterminatedString)       \
+	__ENUMERATE(Use)                      \
 	__ENUMERATE(While)

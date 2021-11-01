@@ -67,6 +67,7 @@ PRIVATE
 	sources/Compiler/Compiler.cpp
 	sources/Compiler/Lexer.cpp
 	sources/Compiler/Parser.cpp
+	sources/Compiler/Parser.GrammarRules.cpp
 	sources/Compiler/Token.cpp
 	sources/VM/VM.cpp
 )
