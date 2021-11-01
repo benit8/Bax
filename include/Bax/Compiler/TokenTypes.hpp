@@ -20,7 +20,6 @@
 	__ENUMERATE(Backslash)                \
 	__ENUMERATE(Caret)                    \
 	__ENUMERATE(CaretEquals)              \
-	__ENUMERATE(Class)                    \
 	__ENUMERATE(Colon)                    \
 	__ENUMERATE(ColonColon)               \
 	__ENUMERATE(Comma)                    \
@@ -36,7 +35,6 @@
 	__ENUMERATE(EqualsGreater)            \
 	__ENUMERATE(Exclamation)              \
 	__ENUMERATE(ExclamationEquals)        \
-	__ENUMERATE(Extends)                  \
 	__ENUMERATE(False)                    \
 	__ENUMERATE(For)                      \
 	__ENUMERATE(Function)                 \
@@ -47,7 +45,6 @@
 	__ENUMERATE(GreaterGreaterEquals)     \
 	__ENUMERATE(Identifier)               \
 	__ENUMERATE(If)                       \
-	__ENUMERATE(Implements)               \
 	__ENUMERATE(LeftBrace)                \
 	__ENUMERATE(LeftBracket)              \
 	__ENUMERATE(LeftParenthesis)          \
@@ -71,9 +68,6 @@
 	__ENUMERATE(Plus)                     \
 	__ENUMERATE(PlusEquals)               \
 	__ENUMERATE(PlusPlus)                 \
-	__ENUMERATE(Private)                  \
-	__ENUMERATE(Protected)                \
-	__ENUMERATE(Public)                   \
 	__ENUMERATE(Question)                 \
 	__ENUMERATE(QuestionColon)            \
 	__ENUMERATE(QuestionDot)              \

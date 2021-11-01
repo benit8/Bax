@@ -17,22 +17,16 @@ namespace Bax
 {
 
 const std::unordered_map<std::string_view, Token::Type> Lexer::keywords = {
-	{ "class",      Token::Type::Class      },
 	{ "const",      Token::Type::Const      },
 	{ "default",    Token::Type::Default    },
 	{ "else",       Token::Type::Else       },
-	{ "extends",    Token::Type::Extends    },
 	{ "false",      Token::Type::False      },
 	{ "for",        Token::Type::For        },
 	{ "function",   Token::Type::Function   },
 	{ "if",         Token::Type::If         },
-	{ "implements", Token::Type::Implements },
 	{ "let",        Token::Type::Let        },
 	{ "match",      Token::Type::Match      },
 	{ "null",       Token::Type::Null       },
-	{ "private",    Token::Type::Private    },
-	{ "protected",  Token::Type::Protected  },
-	{ "public",     Token::Type::Public     },
 	{ "return",     Token::Type::Return     },
 	{ "static",     Token::Type::Static     },
 	{ "true",       Token::Type::True       },

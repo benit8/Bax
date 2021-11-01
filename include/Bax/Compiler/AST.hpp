@@ -525,7 +525,7 @@ namespace Bax
 			virtual const char* class_name() const { return "Declaration"; }
 		};
 
-		struct VariableDeclaration : public Declaration
+		struct VariableDeclaration final : public Declaration
 		{
 			Ptr<Identifier> name;
 			Ptr<Expression> value;
