@@ -1,0 +1,11 @@
+namespace JSON;
+
+interface JsonSerializable
+{
+	public String serialize();
+	public self deserialize(String json);
+}
+
+any decode(String json);
+
+String encode(any);

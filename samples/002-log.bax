@@ -1,0 +1,73 @@
+namespace Log;
+
+enum Level : Number
+{
+	Debug     = 50,
+	Info      = 100,
+	Notice    = 150,
+	Warning   = 200,
+	Error     = 300,
+	Critical  = 400,
+	Alert     = 500,
+	Emergency = 600,
+}
+
+interface LoggerInterface
+{
+	public void debug(String message, ?Map context);
+	public void info(String message, ?Map context);
+	public void notice(String message, ?Map context);
+	public void warning(String message, ?Map context);
+	public void error(String message, ?Map context);
+	public void critical(String message, ?Map context);
+	public void alert(String message, ?Map context);
+	public void emergency(String message, ?Map context);
+
+	public void withContext(Map context = {});
+	public void withoutContext(Array keys = []);
+}
+
+abstract class AbstractLogger implements LoggerInterface
+{
+	public abstract function log(Level level, String message, ?Map context);
+
+	public void debug(String message, ?Map context)
+	{
+		this.log(Debug, message, context);
+	}
+
+	public void info(String message, ?Map context)
+	{
+		this.log(Info, message, context);
+	}
+
+	public void notice(String message, ?Map context)
+	{
+		this.log(Notice, message, context);
+	}
+
+	public void warning(String message, ?Map context)
+	{
+		this.log(Warning, message, context);
+	}
+
+	public void error(String message, ?Map context)
+	{
+		this.log(Error, message, context);
+	}
+
+	public void critical(String message, ?Map context)
+	{
+		this.log(Critical, message, context);
+	}
+
+	public void alert(String message, ?Map context)
+	{
+		this.log(Alert, message, context);
+	}
+
+	public void emergency(String message, ?Map context)
+	{
+		this.log(Emergency, message, context);
+	}
+}

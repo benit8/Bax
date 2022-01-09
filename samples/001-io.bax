@@ -1,0 +1,37 @@
+namespace IO;
+
+interface StreamInterface
+{
+	public Boolean isEof();
+	public void close();
+}
+
+interface InputStreamInterface extends StreamInterface
+{
+	public Promise/*String*/ read(Number);
+	public Promise/*String*/ readLine(Number);
+}
+
+interface OutputStreamInterface extends StreamInterface
+{
+	public Promise/*bool*/ write(String);
+	public Promise/*bool*/ end(String);
+}
+
+interface DuplexStreamInterface extends InputStreamInterface, OutputStreamInterface
+{
+}
+
+enum SeekFrom
+{
+	Start,
+	End,
+	Current,
+}
+
+interface SeekableStreamInterface extends StreamInterface
+{
+	public Number seek(Number offset, SeekMode mode);
+	public Number tell();
+	public Number size();
+}
