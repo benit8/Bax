@@ -1,0 +1,5 @@
+
+var main = fn (args, env) {
+	// println("Hello, World!")
+	return args.size
+}

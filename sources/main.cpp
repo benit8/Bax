@@ -1,11 +1,11 @@
 /*
-** Bax, 2021
+** Bax, 2022
 ** Benoît Lormeau <blormeau@outlook.com>
 ** CLI entry point
 */
 
-#include "Bax/Compiler/Compiler.hpp"
-#include "Bax/VM/VM.hpp"
+#include "Bax/Runtime/Interpreter.hpp"
+#include "Bax/Runtime/VM.hpp"
 #include "Common/Log.hpp"
 #include "Common/OptionParser.hpp"
 #include "fmt/format.h"
@@ -26,35 +26,40 @@ int main(int argc, char** argv, char** envp)
 	// opt.add_option(run_cli, 'a', nullptr, "Run interactively");
 	opt.add_option(run_inline, 'i', "inline", "Run an inline string of code", "code");
 	opt.add_option(only_lint, 'l', "lint", "Syntax check only (lint)");
-	opt.add_argument(entrypoint, "file", "Parse and execute <file>", false);
+	opt.add_argument(entrypoint, "file", "Parse and execute <file>", true);
 	opt.add_argument(args, "args", "Arguments passed to <file>", false);
 	if (!opt.parse(argc, argv))
 		return EXIT_FAILURE;
 
-	// The VM will run compiled code
-	Bax::VM vm(envp);
-	// The compiler will compile such code
-	Bax::Compiler compiler;
+	// Make a data structure of the environment.
+	std::unordered_map<std::string, std::string> env;
+	for (auto it = envp; *it != nullptr; ++it) {
+		auto e = *it;
+		auto p = strchr(e, '=');
+		env.emplace(std::string(e, p), std::string(p + 1));
+	}
 
-	bool ok = false;
+#if 1
+	// The VM will run code
+	Bax::VM runner(args, env);
+#else
+	// The interpreter that will run code
+	Bax::Interpreter runner(args, env);
+#endif
+
+	Bax::Value result;
 	if (!run_inline.empty())
-		ok = compiler.do_string(run_inline);
+		result = runner.interpret(run_inline);
 	else if (!entrypoint.empty())
-		ok = compiler.do_file(entrypoint);
+		result = runner.interpret_file(entrypoint);
 	else
-		ok = compiler.do_istream(std::cin);
+		result = runner.interpret_stream(std::cin);
 
-	if (!ok) {
-		fmt::print(stderr, "Compilation failed\n");
-		return EXIT_FAILURE;
-	}
-
-	if (only_lint)
-		fmt::print("OK\n");
-	else {
-		// TODO: Transfer from the compiler to the VM
-		// vm.run(/*main_closure*/, args);
-	}
+	fmt::print("result = {}\n", result);
+	// if (!ok) {
+	// 	fmt::print(stderr, "Interpretation failed\n");
+	// 	return EXIT_FAILURE;
+	// }
 
 	return EXIT_SUCCESS;
 }

@@ -1,0 +1,14 @@
+var main = fn () {
+	(new FsFinder())
+		.in(["include", "sources"])
+		.files()
+		.name(["*.cpp", "*.hpp"])
+		.find()
+		->each(fn (filename) {
+			var file = FsFile.open(filename)
+			var contents = file.read_all()
+				->replace("2021", "2021-2022")
+			file.rewind()
+			file.write(contents)
+		})
+}

@@ -1,10 +1,10 @@
 /*
-** Bax, 2021
+** Bax, 2022
 ** Benoit Lormeau <blormeau@outlook.com>
-** Parser.GrammarRules.cpp
+** Parser / GrammarRules.cpp
 */
 
-#include "Bax/Compiler/Parser.hpp"
+#include "Bax/Parser.hpp"
 #include "Common/Log.hpp"
 #include <sstream>
 
@@ -14,7 +14,7 @@ namespace Bax
 {
 
 #define PREFIX(F) [] (Parser* p, const Token& t) { return p->F(t); }
-#define INFIX(F) [] (Parser* p, const Token& t, Ptr<AST::Expression> l) { return p->F(t, l); }
+#define INFIX(F) [] (Parser* p, const Token& t, AST::Expression* l) { return p->F(t, l); }
 
 const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules = {
 	{ Token::Type::Ampersand,                { Precedence::BitwiseAnd,  Associativity::Left,  nullptr,            INFIX(binary)     } },
@@ -81,41 +81,46 @@ const std::unordered_map<Token::Type, Parser::GrammarRule> Parser::grammar_rules
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::Identifier> Parser::identifier(const Token& token)
+AST::Identifier* Parser::identifier(const Token& token)
 {
-	return makeNode<AST::Identifier>(std::string(token.trivia.data(), token.trivia.length()));
+	auto idx = current_scope()->find_local(token);
+	if (!idx) {
+		Log::error("Undefined indentifier: {}", token);
+		return nullptr;
+	}
+	return new AST::Identifier(token);
 }
 
-Ptr<AST::Null> Parser::null(const Token&)
+AST::Null* Parser::null(const Token&)
 {
-	return makeNode<AST::Null>();
+	return new AST::Null();
 }
 
-Ptr<AST::Boolean> Parser::boolean(const Token& token)
+AST::Boolean* Parser::boolean(const Token& token)
 {
 	switch (token.type) {
-		case Token::Type::False: return makeNode<AST::Boolean>(false);
-		case Token::Type::True:  return makeNode<AST::Boolean>(true);
+		case Token::Type::False: return new AST::Boolean(false);
+		case Token::Type::True:  return new AST::Boolean(true);
 		default:
 			break;
 	}
 	ASSERT_NOT_REACHED();
 }
 
-Ptr<AST::Glyph> Parser::glyph(const Token& token)
+AST::Glyph* Parser::glyph(const Token& token)
 {
 	auto t = token.trivia.cbegin();
-	uint32_t value = (*t == '\\') ? parse_escape_sequence(++t) : *t;
+	uint64_t value = (*t == '\\') ? parse_escape_sequence(++t) : *t;
 
 	if (++t != token.trivia.cend()) {
 		Log::error("Invalid multi-glyph expression: {}", token);
 		return nullptr;
 	}
 
-	return makeNode<AST::Glyph>(value);
+	return new AST::Glyph(value);
 }
 
-Ptr<AST::Number> Parser::number(const Token& token)
+AST::Number* Parser::number(const Token& token)
 {
 	static auto base_digits = "0123456789abcdef";
 	static const std::unordered_map<char, int> base_prefixes = {
@@ -168,10 +173,10 @@ Ptr<AST::Number> Parser::number(const Token& token)
 		}
 	}
 
-	return makeNode<AST::Number>(result);
+	return new AST::Number(result);
 }
 
-Ptr<AST::String> Parser::string(const Token& token)
+AST::String* Parser::string(const Token& token)
 {
 	std::ostringstream oss;
 
@@ -179,14 +184,14 @@ Ptr<AST::String> Parser::string(const Token& token)
 		oss << (*it == '\\' ? (char)parse_escape_sequence(++it) : *it);
 	}
 
-	return makeNode<AST::String>(oss.str());
+	return new AST::String(oss.str());
 }
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::ArrayExpression> Parser::array(const Token&)
+AST::ArrayExpression* Parser::array(const Token&)
 {
-	std::vector<Ptr<AST::Expression>> elements;
+	std::vector<AST::Expression*> elements;
 
 	while (!peek(Token::Type::RightBracket)) {
 		auto expr = expression();
@@ -199,10 +204,10 @@ Ptr<AST::ArrayExpression> Parser::array(const Token&)
 	}
 	MUST_CONSUME(Token::Type::RightBracket);
 
-	return makeNode<AST::ArrayExpression>(std::move(elements));
+	return new AST::ArrayExpression(std::move(elements));
 }
 
-Ptr<AST::AssignmentExpression> Parser::assignment(const Token& token, Ptr<AST::Expression> lhs)
+AST::AssignmentExpression* Parser::assignment(const Token& token, AST::Expression* lhs)
 {
 	static const std::unordered_map<Token::Type, AST::AssignmentExpression::Operators> assign_operators = {
 		{ Token::Type::AmpersandAmpersandEquals, AST::AssignmentExpression::Operators::BooleanAnd        },
@@ -225,14 +230,14 @@ Ptr<AST::AssignmentExpression> Parser::assignment(const Token& token, Ptr<AST::E
 	auto rhs = expression(Precedence::Assigns);
 	if (!rhs) return nullptr;
 
-	return makeNode<AST::AssignmentExpression>(
+	return new AST::AssignmentExpression(
 		assign_operators.at(token.type),
 		std::move(lhs),
 		std::move(rhs)
 	);
 }
 
-Ptr<AST::BinaryExpression> Parser::binary(const Token& token, Ptr<AST::Expression> lhs)
+AST::BinaryExpression* Parser::binary(const Token& token, AST::Expression* lhs)
 {
 	static const std::unordered_map<Token::Type, AST::BinaryExpression::Operators> binary_operators = {
 		{ Token::Type::Ampersand,          AST::BinaryExpression::Operators::BitwiseAnd          },
@@ -261,60 +266,66 @@ Ptr<AST::BinaryExpression> Parser::binary(const Token& token, Ptr<AST::Expressio
 	auto rhs = expression(grammar_rules.at(token.type).precedence);
 	if (!rhs) return nullptr;
 
-	return makeNode<AST::BinaryExpression>(
+	return new AST::BinaryExpression(
 		binary_operators.at(token.type),
 		std::move(lhs),
 		std::move(rhs)
 	);
 }
 
-Ptr<AST::CallExpression> Parser::call(const Token&, Ptr<AST::Expression> lhs)
+AST::CallExpression* Parser::call(const Token&, AST::Expression* lhs)
 {
-	std::vector<Ptr<AST::Expression>> arguments;
+	std::vector<AST::Expression*> arguments;
 	if (!parse_argument_list(arguments, Token::Type::RightParenthesis))
 		return nullptr;
 	MUST_CONSUME(Token::Type::RightParenthesis);
 
-	return makeNode<AST::CallExpression>(std::move(lhs), std::move(arguments));
+	return new AST::CallExpression(std::move(lhs), std::move(arguments));
 }
 
-Ptr<AST::FunctionExpression> Parser::function(const Token&)
+AST::FunctionExpression* Parser::function(const Token&)
 {
 	MUST_CONSUME(Token::Type::LeftParenthesis);
-	std::vector<Ptr<AST::Expression>> parameters;
+
+	std::vector<AST::Identifier*> parameters;
 	if (!parse_parameter_list(parameters, Token::Type::RightParenthesis))
 		return nullptr;
+
 	MUST_CONSUME(Token::Type::RightParenthesis);
 
-	MUST_CONSUME(Token::Type::LeftBrace);
-	auto body = block_statement();
+	AST::Statement* body = nullptr;
+	if (consume(Token::Type::EqualsGreater)) {
+		auto expr = expression();
+		if (!expr) return nullptr;
+		body = new AST::ReturnStatement(expr);
+	} else {
+		body = block_statement(parameters);
+	}
 	if (!body) return nullptr;
 
-	return makeNode<AST::FunctionExpression>(std::move(parameters), std::move(body));
+	return new AST::FunctionExpression(std::move(parameters), std::move(body));
 }
 
-Ptr<AST::Expression> Parser::group(const Token&)
+AST::Expression* Parser::group(const Token&)
 {
 	auto expr = expression();
 	MUST_CONSUME(Token::Type::RightParenthesis);
 	return expr;
 }
 
-Ptr<AST::MatchExpression> Parser::match(const Token&)
+AST::MatchExpression* Parser::match(const Token&)
 {
-	MUST_CONSUME(Token::Type::LeftParenthesis);
 	auto subject = expression();
 	if (!subject) return nullptr;
-	MUST_CONSUME(Token::Type::RightParenthesis);
 
 	AST::MatchExpression::CasesType cases;
 
 	MUST_CONSUME(Token::Type::LeftBrace);
 	bool has_default = false;
 	while (!done() && !peek(Token::Type::RightBrace)) {
-		std::vector<Ptr<AST::Expression>> cases_expressions;
+		std::vector<AST::Expression*> cases_expressions;
 		do {
-			Ptr<AST::Expression> expr = nullptr;
+			AST::Expression* expr = nullptr;
 			if (consume(Token::Type::Default)) {
 				if (has_default) {
 					Log::error("Match expression already has a 'default' expression, found other {}", m_current_token);
@@ -342,13 +353,13 @@ Ptr<AST::MatchExpression> Parser::match(const Token&)
 	}
 	MUST_CONSUME(Token::Type::RightBrace);
 
-	return makeNode<AST::MatchExpression>(
+	return new AST::MatchExpression(
 		std::move(subject),
 		std::move(cases)
 	);
 }
 
-Ptr<AST::MemberExpression> Parser::member(const Token& token, Ptr<AST::Expression> lhs)
+AST::MemberExpression* Parser::member(const Token& token, AST::Expression* lhs)
 {
 	static const std::unordered_map<Token::Type, AST::MemberExpression::Operators> member_operators = {
 		{ Token::Type::Backslash,   AST::MemberExpression::Operators::Namespace },
@@ -362,24 +373,22 @@ Ptr<AST::MemberExpression> Parser::member(const Token& token, Ptr<AST::Expressio
 		return nullptr;
 	}
 
-	auto rhs = expression(Precedence::Properties);
-	if (!rhs) return nullptr;
-
-	if (!detail::is<AST::Identifier>(rhs)) {
+	auto rhs = identifier();
+	if (!rhs) {
 		Log::error("Right-hand side of member expressions must be an identifier, found {} instead.", rhs->class_name());
 		return nullptr;
 	}
 
-	return makeNode<AST::MemberExpression>(
+	return new AST::MemberExpression(
 		member_operators.at(token.type),
 		std::move(lhs),
 		std::move(rhs)
 	);
 }
 
-Ptr<AST::ObjectExpression> Parser::object(const Token&)
+AST::ObjectExpression* Parser::object(const Token&)
 {
-	std::map<Ptr<AST::Identifier>, Ptr<AST::Expression>> members;
+	std::map<AST::Identifier*, AST::Expression*> members;
 
 	while (!peek(Token::Type::RightBrace)) {
 		auto id_token = consume();
@@ -403,14 +412,14 @@ Ptr<AST::ObjectExpression> Parser::object(const Token&)
 	}
 	MUST_CONSUME(Token::Type::RightBrace);
 
-	return makeNode<AST::ObjectExpression>(std::move(members));
+	return new AST::ObjectExpression(std::move(members));
 }
 
-Ptr<AST::SubscriptExpression> Parser::subscript(const Token&, Ptr<AST::Expression> lhs)
+AST::SubscriptExpression* Parser::subscript(const Token&, AST::Expression* lhs)
 {
 	// Allow empty subscript expressions (eg. `expr[]`)
 	if (consume(Token::Type::RightBracket)) {
-		return makeNode<AST::SubscriptExpression>(lhs);
+		return new AST::SubscriptExpression(lhs);
 	}
 
 	auto expr = expression();
@@ -418,10 +427,10 @@ Ptr<AST::SubscriptExpression> Parser::subscript(const Token&, Ptr<AST::Expressio
 
 	MUST_CONSUME(Token::Type::RightBracket);
 
-	return makeNode<AST::SubscriptExpression>(lhs, std::move(expr));
+	return new AST::SubscriptExpression(lhs, std::move(expr));
 }
 
-Ptr<AST::TernaryExpression> Parser::ternary(const Token&, Ptr<AST::Expression> lhs)
+AST::TernaryExpression* Parser::ternary(const Token&, AST::Expression* lhs)
 {
 	auto consequent = expression(Precedence::Ternary);
 	if (!consequent) return nullptr;
@@ -431,14 +440,14 @@ Ptr<AST::TernaryExpression> Parser::ternary(const Token&, Ptr<AST::Expression> l
 	auto alternate = expression(Precedence::Ternary);
 	if (!alternate) return nullptr;
 
-	return makeNode<AST::TernaryExpression>(
+	return new AST::TernaryExpression(
 		std::move(lhs),
 		std::move(consequent),
 		std::move(alternate)
 	);
 }
 
-Ptr<AST::UnaryExpression> Parser::unary(const Token& token)
+AST::UnaryExpression* Parser::unary(const Token& token)
 {
 	static const std::unordered_map<Token::Type, AST::UnaryExpression::Operators> unary_operators = {
 		{ Token::Type::Exclamation, AST::UnaryExpression::Operators::BooleanNot },
@@ -450,13 +459,13 @@ Ptr<AST::UnaryExpression> Parser::unary(const Token& token)
 	auto rhs = expression(Precedence::Unaries);
 	if (!rhs) return nullptr;
 
-	return makeNode<AST::UnaryExpression>(
+	return new AST::UnaryExpression(
 		unary_operators.at(token.type),
 		std::move(rhs)
 	);
 }
 
-Ptr<AST::UpdateExpression> Parser::update(const Token& token, Ptr<AST::Expression> lhs)
+AST::UpdateExpression* Parser::update(const Token& token, AST::Expression* lhs)
 {
 	static const std::unordered_map<Token::Type, AST::UpdateExpression::Operators> update_operators = {
 		{ Token::Type::PlusPlus,   AST::UpdateExpression::Operators::Increment },
@@ -480,7 +489,7 @@ Ptr<AST::UpdateExpression> Parser::update(const Token& token, Ptr<AST::Expressio
 		return nullptr;
 	}
 
-	return makeNode<AST::UpdateExpression>(
+	return new AST::UpdateExpression(
 		update_operators.at(token.type),
 		std::move(lhs),
 		is_prefix_update

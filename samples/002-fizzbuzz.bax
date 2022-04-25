@@ -1,0 +1,10 @@
+var main = fn (maximum) {
+	while (i < maximum) {
+		println(match (0) {
+			i % 15  => "FizzBuzz",
+			i % 3   => "Fizz",
+			i % 5   => "Buzz",
+			default => i.toString(),
+		})
+	}
+}

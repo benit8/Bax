@@ -1,5 +1,5 @@
 ##
-## Bax, 2021
+## Bax, 2022
 ## Benoît Lormeau <blormeau@outlook.com>
 ## Main CMakeLists
 ##
@@ -33,7 +33,7 @@ PUBLIC
 
 target_compile_options(${PROJECT_NAME}
 PRIVATE
-	-Wall -Wextra
+	-Wall -Wextra -g3
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -46,15 +46,21 @@ PROTECTED
 
 target_sources(${PROJECT_NAME}
 PUBLIC
-	include/Bax/Compiler/AST.hpp
-	include/Bax/Compiler/Compiler.hpp
-	include/Bax/Compiler/Lexer.hpp
-	include/Bax/Compiler/Parser.hpp
-	include/Bax/Compiler/Token.hpp
-	include/Bax/Compiler/TokenTypes.hpp
-	include/Bax/VM/Value.hpp
-	include/Bax/VM/VM.hpp
+	include/Bax/Runtime/Fiber.hpp
+	include/Bax/Runtime/Function.hpp
+	include/Bax/Runtime/Interpreter.hpp
+	include/Bax/Runtime/Object.hpp
+	include/Bax/Runtime/UpValue.hpp
+	include/Bax/Runtime/Value.hpp
+	include/Bax/Runtime/VM.hpp
+	include/Bax/AST.hpp
+	include/Bax/Compiler.hpp
+	include/Bax/Lexer.hpp
+	include/Bax/Parser.hpp
+	include/Bax/Token.hpp
 PRIVATE
+	include/Bax/Runtime/Runner.hpp
+	include/Bax/Token/Types.hpp
 	sources/Common/Assertions.hpp
 	sources/Common/GenericLexer.cpp
 	sources/Common/GenericLexer.hpp
@@ -63,13 +69,14 @@ PRIVATE
 	sources/Common/OptionParser.cpp
 	sources/Common/OptionParser.hpp
 	sources/Common/TTYEscapeSequences.hpp
-	sources/Compiler/AST.cpp
-	sources/Compiler/Compiler.cpp
-	sources/Compiler/Lexer.cpp
-	sources/Compiler/Parser.cpp
-	sources/Compiler/Parser.GrammarRules.cpp
-	sources/Compiler/Token.cpp
-	sources/VM/VM.cpp
+	sources/Parser/GrammarRules.cpp
+	sources/Runtime/Interpreter.cpp
+	sources/Runtime/VM.cpp
+	sources/AST.cpp
+	sources/Compiler.cpp
+	sources/Lexer.cpp
+	sources/Parser.cpp
+	sources/Token.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

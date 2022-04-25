@@ -1,0 +1,61 @@
+namespace Esl
+
+class Event
+{
+	headers: Set :: get
+	body: ?String :: get
+
+	fn serialize(fmt = "json"): String
+	{
+		if this.body {
+			this.headers.set("Content-Length", this.body.length.toString())
+		} else {
+			this.headers.remove("Content-Length")
+		}
+
+		return match fmt {
+			"plain" => this.serializePlain(),
+			"json"  => this.serializeJson(),
+			"xml"   => this.serializeXml(),
+		}
+	}
+
+	fn serializePlain(): String
+	{
+		let buffer = ""
+
+		this.headers.each(fn (k, v) {
+			buffer.appendf("{}: {}\n", k, v)
+		})
+		buffer.append('\n')
+
+		if this.body {
+			buffer.append(this.body)
+		}
+
+		return buffer
+	}
+
+	fn serializeJson(): String
+	{
+		let headers = clone this.headers
+		if this.body {
+			headers.set("_body", this.body)
+		}
+		return headers.toJson()!
+	}
+
+	fn serializeXml(): String
+	{
+		let buffer = "<event><headers>"
+		this.headers.each(fn (k, v) {
+			buffer.appendf("<{1}>{2}</{1}>", k, v.escapeHtmlChars())
+		})
+		buffer.append("</headers>")
+		if (this.body) {
+			buffer.appendf("<body>{}</body>", this.body.escapeHtmlChars())
+		}
+		buffer.append("</event>")
+		return buffer
+	}
+}

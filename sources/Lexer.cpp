@@ -1,10 +1,10 @@
 /*
-** Bax, 2021
+** Bax, 2022
 ** Benoit Lormeau <blormeau@outlook.com>
 ** Lexer.cpp
 */
 
-#include "Bax/Compiler/Lexer.hpp"
+#include "Bax/Lexer.hpp"
 #include "Common/Log.hpp"
 #include <cctype>
 #include <cstdlib>
@@ -17,20 +17,18 @@ namespace Bax
 {
 
 const std::unordered_map<std::string_view, Token::Type> Lexer::keywords = {
-	{ "const",      Token::Type::Const      },
-	{ "default",    Token::Type::Default    },
-	{ "else",       Token::Type::Else       },
-	{ "false",      Token::Type::False      },
-	{ "for",        Token::Type::For        },
-	{ "function",   Token::Type::Function   },
-	{ "if",         Token::Type::If         },
-	{ "let",        Token::Type::Let        },
-	{ "match",      Token::Type::Match      },
-	{ "null",       Token::Type::Null       },
-	{ "return",     Token::Type::Return     },
-	{ "static",     Token::Type::Static     },
-	{ "true",       Token::Type::True       },
-	{ "while",      Token::Type::While      },
+	{ "default", Token::Type::Default  },
+	{ "else",    Token::Type::Else     },
+	{ "false",   Token::Type::False    },
+	{ "for",     Token::Type::For      },
+	{ "fn",      Token::Type::Function },
+	{ "if",      Token::Type::If       },
+	{ "match",   Token::Type::Match    },
+	{ "null",    Token::Type::Null     },
+	{ "return",  Token::Type::Return   },
+	{ "true",    Token::Type::True     },
+	{ "var",     Token::Type::Var      },
+	{ "while",   Token::Type::While    },
 };
 
 const Lexer::OperatorTreeNode Lexer::operator_tree_root = {

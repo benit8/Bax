@@ -4,7 +4,7 @@
 ** Unit test
 */
 
-#include "Bax/Compiler/Lexer.hpp"
+#include "Bax/Lexer.hpp"
 #include "gtest/gtest.h"
 
 // -----------------------------------------------------------------------------
@@ -148,11 +148,11 @@ TEST(Lexer, NumberHexadecimal)
 
 TEST(Lexer, IdentifierAndKeywords)
 {
-	std::string_view source = "let str ";
+	std::string_view source = "var str ";
 	Bax::Lexer lexer(source);
 
 	auto token = lexer.next();
-	ASSERT_EQ(token.type, Bax::Token::Type::Let);
+	ASSERT_EQ(token.type, Bax::Token::Type::Var);
 	ASSERT_EQ(token.trivia, source.substr(0, 3));
 	ASSERT_EQ(token.start.line, 1);
 	ASSERT_EQ(token.start.column, 1);

@@ -1,0 +1,13 @@
+var main = fn (args, env)
+{
+	var check = ! Dns.getRecord(domain, Txt)!
+		.filter(fn (rec) => rec.txt.startsWith("v=spf1"))[0]?
+		.split(' ')
+		.filter(fn (segment) => segment.startsWith('include:'))
+		.map(fn (segment) => segment.substr(8))
+		.intersect(ourDomains)
+		.empty()
+
+	println("The results are in: {}", check)
+	return 0
+}

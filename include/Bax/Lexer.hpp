@@ -1,5 +1,5 @@
 /*
-** Bax, 2021
+** Bax, 2022
 ** Benoit Lormeau <blormeau@outlook.com>
 ** Lexer.hpp
 */
@@ -8,7 +8,7 @@
 
 // -----------------------------------------------------------------------------
 
-#include "Bax/Compiler/Token.hpp"
+#include "Bax/Token.hpp"
 #include "Common/GenericLexer.hpp"
 #include <algorithm>
 #include <map>
@@ -19,6 +19,9 @@
 namespace Bax
 {
 
+/**
+ * Takes text and transforms it into a stream of tokens.
+ */
 class Lexer : public GenericLexer
 {
 private:

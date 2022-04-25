@@ -1,10 +1,10 @@
 /*
-** Bax, 2021
+** Bax, 2022
 ** Benoit Lormeau <blormeau@outlook.com>
 ** Token.cpp
 */
 
-#include "Bax/Compiler/Token.hpp"
+#include "Bax/Token.hpp"
 #include "Common/Assertions.hpp"
 
 // -----------------------------------------------------------------------------

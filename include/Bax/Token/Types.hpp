@@ -1,7 +1,7 @@
 /*
-** Bax, 2021
+** Bax, 2022
 ** Benoit Lormeau <blormeau@outlook.com>
-** TokenTypes.hpp
+** Token / Types.hpp
 */
 
 #pragma once
@@ -23,7 +23,6 @@
 	__ENUMERATE(Colon)                    \
 	__ENUMERATE(ColonColon)               \
 	__ENUMERATE(Comma)                    \
-	__ENUMERATE(Const)                    \
 	__ENUMERATE(Default)                  \
 	__ENUMERATE(Dot)                      \
 	__ENUMERATE(DotDot)                   \
@@ -52,7 +51,6 @@
 	__ENUMERATE(LessEquals)               \
 	__ENUMERATE(LessLess)                 \
 	__ENUMERATE(LessLessEquals)           \
-	__ENUMERATE(Let)                      \
 	__ENUMERATE(Match)                    \
 	__ENUMERATE(Minus)                    \
 	__ENUMERATE(MinusEquals)              \
@@ -80,11 +78,11 @@
 	__ENUMERATE(Semicolon)                \
 	__ENUMERATE(Slash)                    \
 	__ENUMERATE(SlashEquals)              \
-	__ENUMERATE(Static)                   \
 	__ENUMERATE(String)                   \
 	__ENUMERATE(Tilde)                    \
 	__ENUMERATE(True)                     \
 	__ENUMERATE(Unknown)                  \
 	__ENUMERATE(UnterminatedGlyph)        \
 	__ENUMERATE(UnterminatedString)       \
+	__ENUMERATE(Var)                      \
 	__ENUMERATE(While)

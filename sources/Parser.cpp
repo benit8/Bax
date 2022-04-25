@@ -1,10 +1,10 @@
 /*
-** Bax, 2021
+** Bax, 2022
 ** Benoit Lormeau <blormeau@outlook.com>
 ** Parser.cpp
 */
 
-#include "Bax/Compiler/Parser.hpp"
+#include "Bax/Parser.hpp"
 #include "Common/Assertions.hpp"
 #include "Common/Log.hpp"
 
@@ -13,10 +13,8 @@
 namespace Bax
 {
 
-const std::array<Token::Type, 3> Parser::declaration_tokens = {
-	Token::Type::Const,
-	Token::Type::Let,
-	Token::Type::Static,
+const std::array<Token::Type, 1> Parser::declaration_tokens = {
+	Token::Type::Var,
 };
 
 const std::array<Token::Type, 6> Parser::statement_tokens = {
@@ -33,6 +31,7 @@ const std::array<Token::Type, 6> Parser::statement_tokens = {
 Parser::Parser(Lexer lexer)
 : m_lexer(std::move(lexer))
 , m_current_token(m_lexer.next())
+, m_scope_stack()
 {}
 
 Parser::~Parser()
@@ -79,9 +78,11 @@ bool Parser::done() const
 	return peek(Token::Type::Eof);
 }
 
-Ptr<AST::Node> Parser::run()
+AST::BlockStatement* Parser::parse()
 {
-	std::vector<Ptr<AST::Statement>> statements;
+	m_scope_stack.push(new Scope);
+
+	std::vector<AST::Statement*> statements;
 
 	while (!done()) {
 		auto stmt = top_level_statement();
@@ -89,12 +90,12 @@ Ptr<AST::Node> Parser::run()
 		statements.push_back(std::move(stmt));
 	}
 
-	return makeNode<AST::BlockStatement>(std::move(statements));
+	return new AST::BlockStatement(pop_scope(), std::move(statements));
 }
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::Statement> Parser::top_level_statement()
+AST::Statement* Parser::top_level_statement()
 {
 	auto stmt = any_statement();
 	// if (stmt && !detail::is<AST::ClassDeclaration/*, AST::ImportStatement, AST::NamespaceStatement*/>(stmt)) {
@@ -104,7 +105,7 @@ Ptr<AST::Statement> Parser::top_level_statement()
 	return stmt;
 }
 
-Ptr<AST::Statement> Parser::any_statement()
+AST::Statement* Parser::any_statement()
 {
 	if (CONTAINS(declaration_tokens, m_current_token.type))
 		return declaration();
@@ -113,12 +114,10 @@ Ptr<AST::Statement> Parser::any_statement()
 	return nullptr;
 }
 
-Ptr<AST::Declaration> Parser::declaration()
+AST::Declaration* Parser::declaration()
 {
 	switch (m_current_token.type) {
-		case Token::Type::Const:
-		case Token::Type::Let:
-		case Token::Type::Static:
+		case Token::Type::Var:
 			return variable_declaration();
 		default:
 			Log::error("Unexpected token {}, expected declaration", m_current_token);
@@ -126,7 +125,7 @@ Ptr<AST::Declaration> Parser::declaration()
 	}
 }
 
-Ptr<AST::Statement> Parser::statement()
+AST::Statement* Parser::statement()
 {
 	switch (m_current_token.type) {
 		case Token::Type::Identifier: return expression_statement();
@@ -141,7 +140,7 @@ Ptr<AST::Statement> Parser::statement()
 	return nullptr;
 }
 
-Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
+AST::Expression* Parser::expression(Parser::Precedence prec)
 {
 	auto token = consume();
 	if (token.type == Token::Type::Eof) {
@@ -162,7 +161,7 @@ Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
 
 	auto node = (rule.prefix)(this, token);
 
-	while (1) {
+	while (node != nullptr) {
 		auto next = peek();
 		if (next.type == Token::Type::Eof)
 			break;
@@ -176,7 +175,6 @@ Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
 
 		token = consume();
 		node = (it_->second.infix)(this, token, std::move(node));
-		if (!node) return nullptr;
 	}
 
 	return node;
@@ -184,23 +182,25 @@ Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::Identifier> Parser::identifier()
+AST::Identifier* Parser::identifier()
 {
 	auto token = consume();
 	if (token.type != Token::Type::Identifier) {
 		Log::error("Unexpected token {}, expected identifier", m_current_token);
 		return nullptr;
 	}
-	return makeNode<AST::Identifier>(std::string(token.trivia.data(), token.trivia.length()));
+	return new AST::Identifier(token);
 }
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::BlockStatement> Parser::block_statement()
+AST::BlockStatement* Parser::block_statement(std::vector<AST::Identifier*> parameters)
 {
 	MUST_CONSUME(Token::Type::LeftBrace);
 
-	std::vector<Ptr<AST::Statement>> statements;
+	push_scope(parameters);
+
+	std::vector<AST::Statement*> statements;
 	while (!done() && !peek(Token::Type::RightBrace)) {
 		auto stmt = any_statement();
 		if (!stmt) {
@@ -215,75 +215,69 @@ Ptr<AST::BlockStatement> Parser::block_statement()
 
 	MUST_CONSUME(Token::Type::RightBrace);
 
-	return makeNode<AST::BlockStatement>(std::move(statements));
+	return new AST::BlockStatement(pop_scope(), std::move(statements));
 }
 
-Ptr<AST::ExpressionStatement> Parser::expression_statement()
+AST::ExpressionStatement* Parser::expression_statement()
 {
 	auto expr = expression();
 	if (!expr) return nullptr;
 
-	MUST_CONSUME(Token::Type::Semicolon);
+	// MUST_CONSUME(Token::Type::Semicolon); End of line?
 
 	if (!detail::is<AST::AssignmentExpression, AST::CallExpression, AST::UpdateExpression>(expr)) {
 		Log::error("Expression of type {} is not allowed as a statement", expr->class_name());
 		return nullptr;
 	}
 
-	return makeNode<AST::ExpressionStatement>(std::move(expr));
+	return new AST::ExpressionStatement(std::move(expr));
 }
 
-Ptr<AST::IfStatement> Parser::if_statement()
+AST::IfStatement* Parser::if_statement()
 {
 	MUST_CONSUME(Token::Type::If);
-	MUST_CONSUME(Token::Type::LeftParenthesis);
 
 	auto condition = expression();
 	if (!condition) return nullptr;
 
-	MUST_CONSUME(Token::Type::RightParenthesis);
-
-	auto consequent = statement();
+	auto consequent = block_statement();
 	if (!consequent) return nullptr;
 
-	Ptr<AST::Statement> alternate = nullptr;
+	AST::Statement* alternate = nullptr;
 	if (consume(Token::Type::Else)) {
 		alternate = statement();
 		if (!alternate) return nullptr;
 	}
 
-	return makeNode<AST::IfStatement>(
+	return new AST::IfStatement(
 		std::move(condition),
 		std::move(consequent),
 		std::move(alternate)
 	);
 }
 
-Ptr<AST::ReturnStatement> Parser::return_statement()
+AST::ReturnStatement* Parser::return_statement()
 {
 	MUST_CONSUME(Token::Type::Return);
 
 	auto expr = expression();
-	if (!expr) return nullptr;
+	// Empty returns are not a problem.
 
-	MUST_CONSUME(Token::Type::Semicolon);
-	return makeNode<AST::ReturnStatement>(std::move(expr));
+	// MUST_CONSUME(Token::Type::Semicolon); End of line?
+	return new AST::ReturnStatement(std::move(expr));
 }
 
-Ptr<AST::WhileStatement> Parser::while_statement()
+AST::WhileStatement* Parser::while_statement()
 {
 	MUST_CONSUME(Token::Type::While);
-	MUST_CONSUME(Token::Type::LeftParenthesis);
 
 	auto condition = expression();
 	if (!condition) return nullptr;
 
-	MUST_CONSUME(Token::Type::RightParenthesis);
-
-	auto body = statement();
+	auto body = block_statement();
 	if (!body) return nullptr;
 
-	return makeNode<AST::WhileStatement>(
+	return new AST::WhileStatement(
 		std::move(condition),
 		std::move(body)
 	);
@@ -291,37 +285,48 @@ Ptr<AST::WhileStatement> Parser::while_statement()
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::VariableDeclaration> Parser::variable_declaration()
+AST::VariableDeclaration* Parser::variable_declaration()
 {
-	bool is_static = consume(Token::Type::Static);
-
-	bool is_constant = consume(Token::Type::Const);
-	if (!is_constant && !consume(Token::Type::Let)) {
-		Log::error("Unexpected token {}, expected 'let' or 'const'", m_current_token);
-		return nullptr;
-	}
+	MUST_CONSUME(Token::Type::Var);
 
 	auto name = identifier();
 	if (!name) return nullptr;
+
+	current_scope()->add_local(name->name);
 
 	MUST_CONSUME(Token::Type::Equals);
 
 	auto value = expression();
 	if (!value) return nullptr;
 
-	MUST_CONSUME(Token::Type::Semicolon);
+	// MUST_CONSUME(Token::Type::Semicolon); End of line?
 
-	return makeNode<AST::VariableDeclaration>(
-		std::move(name),
-		std::move(value),
-		is_constant,
-		is_static
-	);
+	return new AST::VariableDeclaration(std::move(name), std::move(value));
 }
 
 // -----------------------------------------------------------------------------
 
-uint32_t Parser::parse_escape_sequence(std::string_view::const_iterator& it)
+Scope* Parser::current_scope() const
+{
+	return m_scope_stack.top();
+}
+
+void Parser::push_scope(std::vector<AST::Identifier*> parameters)
+{
+	auto scope = new Scope(current_scope());
+	for (auto param : parameters)
+		scope->add_local(param->name);
+	m_scope_stack.push(scope);
+}
+
+Scope* Parser::pop_scope()
+{
+	auto top = m_scope_stack.top();
+	m_scope_stack.pop();
+	return top;
+}
+
+uint64_t Parser::parse_escape_sequence(std::string_view::const_iterator& it)
 {
 	// Assume the '\' is already skipped
 
@@ -351,7 +356,7 @@ uint32_t Parser::parse_escape_sequence(std::string_view::const_iterator& it)
 			if (!valid)
 				break;
 
-			uint32_t value = 0;
+			uint64_t value = 0;
 			for (++it; isxdigit(*it); ++it)
 				value = value * 16 + (tolower(*it) - (isdigit(*it) ? '0' : 'a' - 10));
 			--it;
@@ -363,7 +368,7 @@ uint32_t Parser::parse_escape_sequence(std::string_view::const_iterator& it)
 	return *--it;
 }
 
-bool Parser::parse_argument_list(std::vector<Ptr<AST::Expression>>& arguments, Token::Type stop)
+bool Parser::parse_argument_list(std::vector<AST::Expression*>& arguments, Token::Type stop)
 {
 	while (!peek(stop)) {
 		if (!arguments.empty() && !must_consume(Token::Type::Comma))
@@ -378,13 +383,13 @@ bool Parser::parse_argument_list(std::vector<Ptr<AST::Expression>>& arguments, T
 	return true;
 }
 
-bool Parser::parse_parameter_list(std::vector<Ptr<AST::Expression>>& parameters, Token::Type stop)
+bool Parser::parse_parameter_list(std::vector<AST::Identifier*>& parameters, Token::Type stop)
 {
 	while (!peek(stop)) {
 		if (!parameters.empty() && !must_consume(Token::Type::Comma))
 			return false;
 
-		auto param = expression();
+		auto param = identifier();
 		if (!param) return false;
 
 		parameters.push_back(std::move(param));

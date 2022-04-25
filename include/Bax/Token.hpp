@@ -1,5 +1,5 @@
 /*
-** Bax, 2021
+** Bax, 2022
 ** Benoit Lormeau <blormeau@outlook.com>
 ** Token.hpp
 */
@@ -8,8 +8,7 @@
 
 // -----------------------------------------------------------------------------
 
-#include "Bax/Compiler/TokenTypes.hpp"
-#include "Bax/VM/Value.hpp"
+#include "Bax/Token/Types.hpp"
 #include "Common/GenericLexer.hpp"
 #include "fmt/format.h"
 #include <ostream>
@@ -31,6 +30,12 @@ struct Token : public GenericToken
 
 	static const char* type_to_string(Token::Type);
 	const char* type_to_string() const { return type_to_string(type); }
+
+	bool operator ==(const Token& other) const
+	{
+		return type == other.type
+			&& trivia == other.trivia;
+	}
 };
 
 }

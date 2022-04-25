@@ -1,5 +1,5 @@
 /*
-** Bax, 2021
+** Bax, 2022
 ** Benoît Lormeau <blormeau@outlook.com>
 ** Common / OptionParser.hpp
 */
