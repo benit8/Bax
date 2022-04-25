@@ -8,8 +8,7 @@
 
 // -----------------------------------------------------------------------------
 
-#include "Bax/Compiler/TokenTypes.hpp"
-#include "Bax/VM/Value.hpp"
+#include "Bax/Token/Types.hpp"
 #include "Common/GenericLexer.hpp"
 #include "fmt/format.h"
 #include <ostream>

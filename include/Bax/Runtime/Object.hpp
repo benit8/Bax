@@ -1,7 +1,7 @@
 /*
 ** Bax, 2021
 ** Benoit Lormeau <blormeau@outlook.com>
-** Value.hpp
+** Runtime / Object.hpp
 */
 
 #pragma once
@@ -11,18 +11,16 @@
 namespace Bax
 {
 
-struct Value
+class Object
 {
-	enum class Type {
-		Null,
-		Bool,
-		Number,
-	} type { Type::Null };
+public:
+	virtual ~Object() = default;
 
-	union {
-		double number;
-		void* object;
-	} as { 0.0 };
+	virtual const char* class_name() = 0;
+
+protected:
+	Object()
+	{}
 };
 
 }

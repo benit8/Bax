@@ -4,7 +4,7 @@
 ** Parser.cpp
 */
 
-#include "Bax/Compiler/Parser.hpp"
+#include "Bax/Parser.hpp"
 #include "Common/Assertions.hpp"
 #include "Common/Log.hpp"
 
@@ -14,9 +14,7 @@ namespace Bax
 {
 
 const std::array<Token::Type, 3> Parser::declaration_tokens = {
-	Token::Type::Const,
 	Token::Type::Let,
-	Token::Type::Static,
 };
 
 const std::array<Token::Type, 6> Parser::statement_tokens = {
@@ -79,9 +77,9 @@ bool Parser::done() const
 	return peek(Token::Type::Eof);
 }
 
-Ptr<AST::Node> Parser::run()
+AST::Node* Parser::parse()
 {
-	std::vector<Ptr<AST::Statement>> statements;
+	std::vector<AST::Statement*> statements;
 
 	while (!done()) {
 		auto stmt = top_level_statement();
@@ -89,12 +87,12 @@ Ptr<AST::Node> Parser::run()
 		statements.push_back(std::move(stmt));
 	}
 
-	return makeNode<AST::BlockStatement>(std::move(statements));
+	return new AST::BlockStatement(std::move(statements));
 }
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::Statement> Parser::top_level_statement()
+AST::Statement* Parser::top_level_statement()
 {
 	auto stmt = any_statement();
 	// if (stmt && !detail::is<AST::ClassDeclaration/*, AST::ImportStatement, AST::NamespaceStatement*/>(stmt)) {
@@ -104,7 +102,7 @@ Ptr<AST::Statement> Parser::top_level_statement()
 	return stmt;
 }
 
-Ptr<AST::Statement> Parser::any_statement()
+AST::Statement* Parser::any_statement()
 {
 	if (CONTAINS(declaration_tokens, m_current_token.type))
 		return declaration();
@@ -113,12 +111,10 @@ Ptr<AST::Statement> Parser::any_statement()
 	return nullptr;
 }
 
-Ptr<AST::Declaration> Parser::declaration()
+AST::Declaration* Parser::declaration()
 {
 	switch (m_current_token.type) {
-		case Token::Type::Const:
 		case Token::Type::Let:
-		case Token::Type::Static:
 			return variable_declaration();
 		default:
 			Log::error("Unexpected token {}, expected declaration", m_current_token);
@@ -126,7 +122,7 @@ Ptr<AST::Declaration> Parser::declaration()
 	}
 }
 
-Ptr<AST::Statement> Parser::statement()
+AST::Statement* Parser::statement()
 {
 	switch (m_current_token.type) {
 		case Token::Type::Identifier: return expression_statement();
@@ -141,7 +137,7 @@ Ptr<AST::Statement> Parser::statement()
 	return nullptr;
 }
 
-Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
+AST::Expression* Parser::expression(Parser::Precedence prec)
 {
 	auto token = consume();
 	if (token.type == Token::Type::Eof) {
@@ -184,23 +180,23 @@ Ptr<AST::Expression> Parser::expression(Parser::Precedence prec)
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::Identifier> Parser::identifier()
+AST::Identifier* Parser::identifier()
 {
 	auto token = consume();
 	if (token.type != Token::Type::Identifier) {
 		Log::error("Unexpected token {}, expected identifier", m_current_token);
 		return nullptr;
 	}
-	return makeNode<AST::Identifier>(std::string(token.trivia.data(), token.trivia.length()));
+	return new AST::Identifier(std::string(token.trivia.data(), token.trivia.length()));
 }
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::BlockStatement> Parser::block_statement()
+AST::BlockStatement* Parser::block_statement()
 {
 	MUST_CONSUME(Token::Type::LeftBrace);
 
-	std::vector<Ptr<AST::Statement>> statements;
+	std::vector<AST::Statement*> statements;
 	while (!done() && !peek(Token::Type::RightBrace)) {
 		auto stmt = any_statement();
 		if (!stmt) {
@@ -215,10 +211,10 @@ Ptr<AST::BlockStatement> Parser::block_statement()
 
 	MUST_CONSUME(Token::Type::RightBrace);
 
-	return makeNode<AST::BlockStatement>(std::move(statements));
+	return new AST::BlockStatement(std::move(statements));
 }
 
-Ptr<AST::ExpressionStatement> Parser::expression_statement()
+AST::ExpressionStatement* Parser::expression_statement()
 {
 	auto expr = expression();
 	if (!expr) return nullptr;
@@ -230,10 +226,10 @@ Ptr<AST::ExpressionStatement> Parser::expression_statement()
 		return nullptr;
 	}
 
-	return makeNode<AST::ExpressionStatement>(std::move(expr));
+	return new AST::ExpressionStatement(std::move(expr));
 }
 
-Ptr<AST::IfStatement> Parser::if_statement()
+AST::IfStatement* Parser::if_statement()
 {
 	MUST_CONSUME(Token::Type::If);
 	MUST_CONSUME(Token::Type::LeftParenthesis);
@@ -246,20 +242,20 @@ Ptr<AST::IfStatement> Parser::if_statement()
 	auto consequent = statement();
 	if (!consequent) return nullptr;
 
-	Ptr<AST::Statement> alternate = nullptr;
+	AST::Statement* alternate = nullptr;
 	if (consume(Token::Type::Else)) {
 		alternate = statement();
 		if (!alternate) return nullptr;
 	}
 
-	return makeNode<AST::IfStatement>(
+	return new AST::IfStatement(
 		std::move(condition),
 		std::move(consequent),
 		std::move(alternate)
 	);
 }
 
-Ptr<AST::ReturnStatement> Parser::return_statement()
+AST::ReturnStatement* Parser::return_statement()
 {
 	MUST_CONSUME(Token::Type::Return);
 
@@ -267,10 +263,10 @@ Ptr<AST::ReturnStatement> Parser::return_statement()
 	if (!expr) return nullptr;
 
 	MUST_CONSUME(Token::Type::Semicolon);
-	return makeNode<AST::ReturnStatement>(std::move(expr));
+	return new AST::ReturnStatement(std::move(expr));
 }
 
-Ptr<AST::WhileStatement> Parser::while_statement()
+AST::WhileStatement* Parser::while_statement()
 {
 	MUST_CONSUME(Token::Type::While);
 	MUST_CONSUME(Token::Type::LeftParenthesis);
@@ -283,7 +279,7 @@ Ptr<AST::WhileStatement> Parser::while_statement()
 	auto body = statement();
 	if (!body) return nullptr;
 
-	return makeNode<AST::WhileStatement>(
+	return new AST::WhileStatement(
 		std::move(condition),
 		std::move(body)
 	);
@@ -291,15 +287,9 @@ Ptr<AST::WhileStatement> Parser::while_statement()
 
 // -----------------------------------------------------------------------------
 
-Ptr<AST::VariableDeclaration> Parser::variable_declaration()
+AST::VariableDeclaration* Parser::variable_declaration()
 {
-	bool is_static = consume(Token::Type::Static);
-
-	bool is_constant = consume(Token::Type::Const);
-	if (!is_constant && !consume(Token::Type::Let)) {
-		Log::error("Unexpected token {}, expected 'let' or 'const'", m_current_token);
-		return nullptr;
-	}
+	MUST_CONSUME(Token::Type::Let);
 
 	auto name = identifier();
 	if (!name) return nullptr;
@@ -311,12 +301,7 @@ Ptr<AST::VariableDeclaration> Parser::variable_declaration()
 
 	MUST_CONSUME(Token::Type::Semicolon);
 
-	return makeNode<AST::VariableDeclaration>(
-		std::move(name),
-		std::move(value),
-		is_constant,
-		is_static
-	);
+	return new AST::VariableDeclaration(std::move(name), std::move(value));
 }
 
 // -----------------------------------------------------------------------------
@@ -363,7 +348,7 @@ uint32_t Parser::parse_escape_sequence(std::string_view::const_iterator& it)
 	return *--it;
 }
 
-bool Parser::parse_argument_list(std::vector<Ptr<AST::Expression>>& arguments, Token::Type stop)
+bool Parser::parse_argument_list(std::vector<AST::Expression*>& arguments, Token::Type stop)
 {
 	while (!peek(stop)) {
 		if (!arguments.empty() && !must_consume(Token::Type::Comma))
@@ -378,12 +363,13 @@ bool Parser::parse_argument_list(std::vector<Ptr<AST::Expression>>& arguments, T
 	return true;
 }
 
-bool Parser::parse_parameter_list(std::vector<Ptr<AST::Expression>>& parameters, Token::Type stop)
+bool Parser::parse_parameter_list(std::vector<AST::Expression*>& parameters, Token::Type stop)
 {
 	while (!peek(stop)) {
 		if (!parameters.empty() && !must_consume(Token::Type::Comma))
 			return false;
 
+		// FIXME: must not be ANY kind expression
 		auto param = expression();
 		if (!param) return false;
 

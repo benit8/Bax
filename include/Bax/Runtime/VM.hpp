@@ -1,37 +1,33 @@
 /*
 ** Bax, 2021
 ** Benoit Lormeau <blormeau@outlook.com>
-** Compiler.hpp
+** VM / VM.hpp
 */
 
 #pragma once
 
 // -----------------------------------------------------------------------------
 
-#include "Bax/Compiler/AST.hpp"
 #include <istream>
 #include <string>
-#include <string_view>
+#include <unordered_map>
+#include <vector>
+#include "Bax/Runtime/Runner.hpp"
 
 // -----------------------------------------------------------------------------
 
 namespace Bax
 {
 
-class Compiler
+class VM final : public Runner
 {
-	Ptr<AST::Node> m_ast;
-
 public:
-	Compiler();
-	~Compiler();
+	VM(
+		const std::vector<std::string>& args = {},
+		const std::unordered_map<std::string, std::string>& environment = {}
+	);
 
-	bool do_istream(std::istream& input);
-	bool do_file(const std::string& filename);
-	bool do_string(std::string_view source);
-
-private:
-	bool run(std::string_view source);
+	Value interpret(const std::string& source) override;
 };
 
 }

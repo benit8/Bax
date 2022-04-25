@@ -1,16 +1,13 @@
-{
-	let i = 0;
-	const a = ['a', 'b', 'c', 'd'];
-	static const counter = 0;
+// let a = ['a', 'b', 'c', 'd'];
 
-	const fizzbuzz = function (maximum) {
-		while (i < maximum) {
-			println(match (0) {
-				i % 15  => "FizzBuzz",
-				i % 3   => "Fizz",
-				i % 5   => "Buzz",
-				default => i.toString(),
-			});
-		}
-	};
-}
+// let fizzbuzz = fn (maximum) {
+	let i = 0;
+	while (i < maximum) {
+		println(match (0) {
+			i % 15  => "FizzBuzz",
+			i % 3   => "Fizz",
+			i % 5   => "Buzz",
+			default => i.toString(),
+		});
+	}
+// };

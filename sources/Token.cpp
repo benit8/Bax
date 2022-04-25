@@ -4,7 +4,7 @@
 ** Token.cpp
 */
 
-#include "Bax/Compiler/Token.hpp"
+#include "Bax/Token.hpp"
 #include "Common/Assertions.hpp"
 
 // -----------------------------------------------------------------------------

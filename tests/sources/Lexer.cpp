@@ -4,7 +4,7 @@
 ** Unit test
 */
 
-#include "Bax/Compiler/Lexer.hpp"
+#include "Bax/Lexer.hpp"
 #include "gtest/gtest.h"
 
 // -----------------------------------------------------------------------------

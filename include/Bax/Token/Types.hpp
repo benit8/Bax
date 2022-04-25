@@ -1,7 +1,7 @@
 /*
 ** Bax, 2021
 ** Benoit Lormeau <blormeau@outlook.com>
-** TokenTypes.hpp
+** Token / Types.hpp
 */
 
 #pragma once
